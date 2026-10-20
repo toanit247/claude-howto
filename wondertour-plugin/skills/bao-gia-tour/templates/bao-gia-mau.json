@@ -1,0 +1,18 @@
+{
+  "ten_doan": "VÍ DỤ - Đoàn doanh nghiệp Hạ Long 2N1Đ (số liệu minh họa, không phải giá thật)",
+  "so_khach_tinh_tien": 100,
+  "so_khach_mien_phi": 2,
+  "du_phong_phat_sinh_pct": 3,
+  "bien_lai_gop_toi_thieu_pct": null,
+  "gia_ban_moi_khach": 2300000,
+  "hang_muc": [
+    {"ten": "Khách sạn 4 sao, phòng đôi", "loai": "theo_khach", "don_gia": 450000, "so_ngay": 1},
+    {"ten": "Ăn chính 3 bữa", "loai": "theo_khach", "don_gia": 250000, "so_ngay": 3},
+    {"ten": "Vé tàu vịnh", "loai": "theo_khach", "don_gia": 350000},
+    {"ten": "Bảo hiểm du lịch", "loai": "theo_khach", "don_gia": 20000},
+    {"ten": "Xe 45 chỗ", "loai": "co_dinh", "don_gia": 4500000, "so_luong": 3, "so_ngay": 2},
+    {"ten": "HDV", "loai": "co_dinh", "don_gia": 1200000, "so_luong": 2, "so_ngay": 2},
+    {"ten": "Gala dinner: MC, âm thanh ánh sáng", "loai": "co_dinh", "don_gia": 25000000},
+    {"ten": "Teambuilding bãi biển", "loai": "co_dinh", "don_gia": null}
+  ]
+}
