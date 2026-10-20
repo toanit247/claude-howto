@@ -269,6 +269,34 @@ Tài liệu hỗ trợ, ít khẩn cấp hơn nhưng vẫn quan trọng.
 
 ---
 
+## Đợt bổ sung 2026-10-21
+
+Rà soát ngày 2026-10-21 cho thấy một số file có trong bản tiếng Anh nhưng chưa có trong `vi/`, và một số bản dịch cũ đã lệch xa bản gốc. Đợt này bổ sung:
+
+| File | Trạng thái | Dịch bởi | Ngày dịch | Notes |
+|------|------------|----------|-----------|-------|
+| `README.md` | ✅ Done | Claude | 2026-10-21 | Dịch lại đầy đủ (bản cũ chỉ 73/897 dòng) |
+| `claude_concepts_guide.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `06-hooks/README.md` | ✅ Done | Claude | 2026-10-21 | Cập nhật theo bản gốc 1.669 dòng |
+| `06-hooks/dependency-check.sh` | ✅ Done | Claude | 2026-10-21 | Mới, chỉ dịch comment và thông báo |
+| `06-hooks/pre-tool-check.sh` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `06-hooks/session-end.sh` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `06-hooks/log-bash.sh` | ✅ Done | Claude | 2026-10-21 | Dịch lại theo bản gốc mới |
+| `03-skills/doc-generator/SKILL.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/refactor/references/code-smells.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/refactor/references/refactoring-catalog.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/refactor/templates/refactoring-plan.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/blog-draft/templates/*.md` (2 file) | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/brand-voice/tone-examples.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `03-skills/code-review-specialist/templates/*.md` (2 file) | ✅ Done | Claude | 2026-10-21 | Mới |
+| `04-subagents/clean-code-reviewer.md`, `data-scientist.md`, `performance-optimizer.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| `resources/README.md`, `QUICK-START.md`, `DESIGN-SYSTEM.md` | ✅ Done | Claude | 2026-10-21 | Mới |
+| Script Python trong `03-skills/*/scripts/`, `doc-generator/generate-docs.py` | ✅ Copied | Claude | 2026-10-21 | Chép nguyên bản, không dịch code |
+
+Chưa làm trong đợt này (tài liệu dành cho người đóng góp, không ảnh hưởng người học): `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `STYLE_GUIDE.md` (bản `vi/` đang ngắn hơn bản gốc).
+
+---
+
 ## Notes & Issues
 
 ### Known Issues
