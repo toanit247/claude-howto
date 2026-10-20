@@ -1,0 +1,17 @@
+{
+  "name": "wondertour",
+  "version": "1.0.0",
+  "description": "Bộ công cụ AI nội bộ WonderTour: content Toản Dương Days, duyệt content fanpage, báo giá tour, báo cáo ngày, kiểm soát lãi gộp, rà soát đoàn trước khởi hành, soạn proposal MICE.",
+  "author": {
+    "name": "WonderTour"
+  },
+  "keywords": [
+    "wondertour",
+    "du-lich",
+    "mice",
+    "bao-gia",
+    "content",
+    "sales"
+  ],
+  "license": "UNLICENSED"
+}

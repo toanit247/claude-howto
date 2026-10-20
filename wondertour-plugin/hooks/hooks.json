@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chan_du_lieu_nhay_cam.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
