@@ -1324,6 +1324,37 @@ Or from within an interactive REPL:
 /teleport
 ```
 
+### Thêm dự án từ điện thoại
+
+Bạn không cần laptop để đưa một dự án vào Claude Code. Từ ứng dụng Claude trên điện thoại (iOS/Android), có hai cách thêm dự án, tùy code đang nằm ở đâu.
+
+**Cách A: repository trên GitHub (chạy trên cloud)**
+
+1. Cài ứng dụng Claude và đăng nhập bằng tài khoản Pro, Max, Team hoặc Enterprise.
+2. Mở tab **Code**.
+3. Kết nối tài khoản GitHub khi được hỏi (hoặc tại [claude.ai/connect-github](https://claude.ai/connect-github)).
+4. Cài Claude GitHub App cho repository. Với repo của tổ chức, có thể cần chủ sở hữu tổ chức phê duyệt.
+5. Tạo phiên mới, chọn repository và một môi trường cloud, rồi nhập yêu cầu.
+6. Claude clone repo vào một container cloud mới, làm việc trên một nhánh và push khi bạn yêu cầu. Xem diff và mở pull request ngay trong ứng dụng.
+
+> **Mẹo**: Repository của một phiên được chọn lúc phiên bắt đầu. Muốn làm repo khác, hãy tạo phiên mới và chọn repo đó.
+
+**Cách B: thư mục trên máy tính của bạn (chạy cục bộ)**
+
+Nếu dự án chưa có trên GitHub, hoặc cần công cụ cục bộ, hãy bật Remote Control trên máy một lần:
+
+```bash
+cd ~/projects/my-app
+claude remote-control --name "my-app"
+```
+
+Máy sẽ hiện thành một thẻ thiết bị trong tab **Code**, và bạn có thể mở phiên trong thư mục đó ngay từ điện thoại. Code không rời khỏi máy của bạn. Xem [Remote Control](#remote-control) để biết các cờ và giới hạn.
+
+| Code nằm ở đâu | Dùng | Cần bật máy tính? |
+|----------------|------|-------------------|
+| Repo GitHub | Phiên cloud (Cách A) | Không |
+| Chỉ có thư mục cục bộ | Remote Control (Cách B) | Có |
+
 ### Use Cases
 
 - Start work on one machine and continue on another

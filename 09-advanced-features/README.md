@@ -1920,6 +1920,37 @@ show a `/teleport` hint explaining how to continue locally (v2.1.223).
 > reference documents only the bare picker form, so prefer `claude --teleport` unless
 > you already have a session ID in hand.
 
+### Adding a Project from Your Phone
+
+You do not need a laptop to point Claude Code at a project. From the Claude mobile app (iOS/Android) you can add a project in one of two ways, depending on where the code lives.
+
+**Option A: a GitHub repository (runs in the cloud)**
+
+1. Install the Claude app and sign in with a Pro, Max, Team, or Enterprise account.
+2. Open the **Code** tab.
+3. Connect your GitHub account when prompted (or at [claude.ai/connect-github](https://claude.ai/connect-github)).
+4. Install the Claude GitHub App on the repository. For an organization repo, an org owner may have to approve it.
+5. Start a new session, select the repository and a cloud environment, then type your task.
+6. Claude clones the repo into a fresh cloud container, works on a branch, and pushes when you ask. Review the diff and open a pull request from the app.
+
+> **Tip**: A session's repositories are chosen when it starts. To work on another repo, start a new session with that repo selected.
+
+**Option B: a folder on your own computer (runs locally)**
+
+If the project is not on GitHub, or needs local tools, start Remote Control on the machine once:
+
+```bash
+cd ~/projects/my-app
+claude remote-control --name "my-app"
+```
+
+The machine then appears as a device card in the **Code** tab, and you can start sessions in that folder from your phone. The code never leaves your machine. See [Remote Control](#remote-control) for flags and limits.
+
+| Where the code lives | Use | Needs your computer on? |
+|----------------------|-----|------------------------|
+| GitHub repo | Cloud session (Option A) | No |
+| Local folder only | Remote Control (Option B) | Yes |
+
 ### Use Cases
 
 - Start work on one machine and continue on another
