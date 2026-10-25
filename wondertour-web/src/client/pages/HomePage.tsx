@@ -4,7 +4,7 @@ import { paths } from "../../shared/routes";
 import { DepartureBoard } from "../components/DepartureBoard";
 import { DealsSection, DestinationStrip, Rail, ServiceGrid } from "../components/HomeSections";
 import { RecentTours } from "../components/RecentTours";
-import { SearchBar } from "../components/SearchBar";
+import { SentenceSearch } from "../components/SentenceSearch";
 import { TourCard } from "../components/TourCard";
 import { Picture } from "../components/ui";
 import { setCity, useCity } from "../lib/hooks";
@@ -18,17 +18,25 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
   return (
     <>
       <section className="bg-primary text-white">
-        <div className="wrap pt-7 pb-24 sm:pt-14 sm:pb-32">
-          <p className="text-sm font-semibold text-soft sm:text-base">{brand.name}, {brand.slogan.toLowerCase()}</p>
-          <h1 className="mt-2 max-w-3xl text-[1.75rem] text-white sm:mt-3 sm:text-5xl lg:text-6xl">{brand.hero.title}</h1>
-          <p className="mt-4 hidden max-w-xl text-lg text-white/85 sm:block">{brand.hero.subtitle}</p>
+        <div className="wrap pt-8 pb-20 sm:pt-14 sm:pb-28">
+          <p className="mb-5 text-sm font-semibold text-soft sm:text-base">{brand.name}, {brand.slogan.toLowerCase()}</p>
+          <SentenceSearch
+            facets={page.facets}
+            months={page.months}
+            tone="dark"
+            subtitle={
+              <p className="mt-5 max-w-xl text-white/80 sm:text-lg">
+                <span className="hidden sm:inline">{brand.hero.title} </span>
+                Bấm vào từng chỗ trống. Web tìm theo lịch khởi hành và chỗ còn thật.
+              </p>
+            }
+          />
         </div>
       </section>
 
-      <div className="wrap -mt-16 sm:-mt-24">
-        <div className="space-y-5 rounded-2xl bg-white p-4 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-6">
+      <div className="wrap -mt-12 sm:-mt-16">
+        <div className="rounded-2xl bg-white p-4 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-6">
           <ServiceGrid services={brand.services} />
-          <SearchBar facets={page.facets} months={page.months} />
         </div>
       </div>
 

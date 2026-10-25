@@ -35,7 +35,8 @@ test("khách lẻ: giữ chỗ → đặt → hiện VietQR → ngân hàng báo
 
 test("tra cứu đơn và trang tìm tour", async ({ page }) => {
   await page.goto("/tour?budget=0-5000000");
-  await expect(page.getByRole("heading", { name: "Tìm tour" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Tôi muốn đi/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Ngân sách: dưới 5.000.000/ })).toBeVisible();
   await expect(page.getByRole("status")).toContainText("Tìm thấy");
   await page.goto("/tra-cuu");
   await page.getByLabel("Mã đặt chỗ").fill("WT000000");
@@ -60,4 +61,27 @@ test("đại lý đăng nhập thấy phần hưởng, đăng xuất thì hết"
   await page.reload();
   await panel.locator('label:has(input[name="departure"]:not([disabled]))').first().click();
   await expect(panel).not.toContainText("Phần hưởng");
+});
+
+test("câu tìm tour: điền chỗ trống → đếm tour → kết quả → số khách tự điền", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Chỉ cookie cần thiết" }).click();
+
+  await page.getByRole("button", { name: /^Nơi đến:/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Nhật Bản" }).click();
+  await page.getByRole("button", { name: /^Đi cùng:/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: /Gia đình có trẻ nhỏ/ }).click();
+  await expect(page.getByRole("button", { name: "Nơi đến: Nhật Bản" })).toBeVisible();
+  const go = page.getByRole("button", { name: /Xem 1 tour phù hợp/ });
+  await expect(go).toBeVisible();
+  await go.click();
+
+  await expect(page).toHaveURL(/\/tour\?.*destination=nhat-ban.*party=family/);
+  await expect(page.getByRole("status")).toContainText("Tìm thấy 1 tour");
+  await page.getByRole("link", { name: /Nhật Bản 6 ngày 5 đêm/ }).click();
+  // "Gia đình có trẻ nhỏ" → 2 người lớn, 2 trẻ em điền sẵn trong khung đặt chỗ.
+  const panel = page.locator("#dat-cho");
+  await panel.locator('label:has(input[name="departure"]:not([disabled]))').first().click();
+  await expect(panel.getByLabel("Người lớn")).toHaveValue("2");
+  await expect(panel.getByLabel(/Trẻ em/)).toHaveValue("2");
 });

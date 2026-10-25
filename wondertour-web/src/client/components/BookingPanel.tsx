@@ -1,13 +1,14 @@
 // Đặt chỗ chạy trên trình duyệt: chọn ngày → giữ chỗ có hạn → danh sách khách → mã VietQR.
 // Giá, chỗ còn, hạn giữ, mức cọc, trạng thái tiền đều do xTravelOS trả; web không tự tính, không tự báo đã thanh toán.
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { formatCountdown, formatDate, formatMoney } from "../../shared/format";
+import { formatCountdown, formatDate, formatMoney, monthLabel } from "../../shared/format";
+import { PARTIES, type PartyKey } from "../../shared/party";
 import type { Booking, BookingStatus, Departure, Hold, Pax, ProductDetail } from "../../shared/schemas";
 import { Icon } from "../icons";
 import { api, ApiError, newIdempotencyKey } from "../lib/api";
-import { useNow } from "../lib/hooks";
-import { monthLabel } from "./SearchBar";
+import { useBrowserValue, useNow } from "../lib/hooks";
 import { weekday } from "./DepartureBoard";
+import { PARTY_KEY } from "./SentenceSearch";
 import { Alert, Consent } from "./ui";
 
 export const STATUS_LABEL: Record<BookingStatus, string> = {
@@ -46,7 +47,10 @@ export function BookingPanel({ product, brandName }: { product: ProductDetail; b
   const [departures, setDepartures] = useState<Departure[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [pax, setPax] = useState<Pax>({ adult: 2, child: 0, infant: 0 });
+  // Số khách mặc định theo "đi cùng ai" đã chọn ở câu tìm tour; khách sửa thì theo khách.
+  const party = useBrowserValue(() => localStorage.getItem(PARTY_KEY) ?? "", "");
+  const [paxEdits, setPax] = useState<Pax | null>(null);
+  const pax: Pax = paxEdits ?? (party in PARTIES ? PARTIES[party as PartyKey].pax : { adult: 2, child: 0, infant: 0 });
   const [step, setStep] = useState<Step>({ kind: "pick" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -198,7 +202,7 @@ function DeparturePicker({
       <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
         {months.map((m) => (
           <div key={m}>
-            <p className="mb-1 text-xs font-semibold text-muted">{monthLabel(m)}</p>
+            <p className="mb-1 text-xs font-semibold text-muted capitalize">{monthLabel(m)}</p>
             <div className="grid grid-cols-2 gap-2">
               {departures
                 .filter((d) => d.date.startsWith(m))

@@ -28,6 +28,7 @@ export class Catalog {
       month: f.month,
       from: f.from,
       category: f.category,
+      party: f.party,
       promo: f.promo,
       sort: f.sort,
       minPrice: f.minPrice,

@@ -1,9 +1,10 @@
 import type { AppData, PageData } from "../../shared/routes";
 import type { ProductList } from "../../shared/schemas";
 import { PRODUCT_SORTS } from "../../shared/sorts";
-import { SearchBar } from "../components/SearchBar";
+import { SentenceSearch } from "../components/SentenceSearch";
 import { TourCard } from "../components/TourCard";
 import { Breadcrumbs } from "../components/ui";
+import { Icon } from "../icons";
 
 const SORT_LABEL: Record<(typeof PRODUCT_SORTS)[number], string> = {
   departure: "Khởi hành gần nhất",
@@ -45,13 +46,18 @@ export function ToursPage({ page }: { data: AppData; page: Extract<PageData, { p
   return (
     <div className="wrap py-8">
       <Breadcrumbs items={[{ label: "Trang chủ", href: "/" }, { label: "Tour" }]} />
-      <h1 className="mt-3 text-3xl sm:text-4xl">
-        {filter.promo ? "Tour đang ưu đãi" : filter.category ? (CATEGORY_LABEL[filter.category] ?? "Tìm tour") : "Tìm tour"}
-      </h1>
-      <div className="mt-5 rounded-2xl border border-line p-3 sm:p-4">
-        <SearchBar facets={list.facets} months={page.months} filter={filter} />
+      {filter.promo || (filter.category && CATEGORY_LABEL[filter.category]) ? (
+        <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-mist px-3 py-1 text-sm font-semibold text-primary">
+          {filter.promo ? "Đang ưu đãi" : CATEGORY_LABEL[filter.category ?? ""]}
+          <a href="/tour" className="text-muted hover:text-ink" aria-label="Bỏ lọc này">
+            <Icon name="close" className="size-4" />
+          </a>
+        </p>
+      ) : null}
+      <div className="mt-4">
+        <SentenceSearch facets={list.facets} months={page.months} filter={filter} tone="light" />
       </div>
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
         <p className="text-muted" role="status">
           {list.total ? `Tìm thấy ${list.total} tour` : "Chưa có tour khớp. Thử bỏ bớt điều kiện, hoặc để lại yêu cầu để được thiết kế tour riêng."}
         </p>

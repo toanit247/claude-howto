@@ -155,6 +155,19 @@ describe("giữ chỗ và đặt chỗ", () => {
     await request(app).post("/api/bookings/lookup").send({ code: a.body.code, phone: "0987654321" }).expect(404);
   });
 
+  it("đếm tour theo câu tìm tour: đi cùng công ty chỉ ra tour đoàn", async () => {
+    const { app } = makeApp();
+    const all = await request(app).get("/api/products?pageSize=1").expect(200);
+    expect(all.body.total).toBe(6);
+    expect(all.body.items).toHaveLength(1);
+    const company = await request(app).get("/api/products?party=company&pageSize=24").expect(200);
+    expect(company.body.total).toBe(1);
+    expect(company.body.items[0].slug).toBe("cat-ba-2n1d-teambuilding");
+    const budget = await request(app).get("/api/products?budget=0-5000000").expect(200);
+    expect(budget.body.total).toBe(2);
+    await request(app).get("/api/products?party=khong-co").expect(200); // giá trị lạ bị bỏ, không lỗi
+  });
+
   it("thiếu mã chống trùng, sai dữ liệu, gửi chéo trang đều bị chặn", async () => {
     const { app } = makeApp();
     await request(app).post("/api/holds").send({ departureId: "x", pax: { adult: 1, child: 0, infant: 0 } }).expect(422);

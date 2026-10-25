@@ -201,11 +201,13 @@ export function createMockXTravel(opts: MockOptions) {
       items = items.filter((p) => fold(`${p.name} ${p.destinations.map((d) => d.name).join(" ")}`).includes(needle));
     }
     if (q.destination) items = items.filter((p) => p.destinations.some((d) => d.slug === q.destination));
-    const { season, month, category } = q;
+    const { season, month, category, party } = q;
     if (season) items = items.filter((p) => p.seasons.includes(season));
     if (q.from) items = items.filter((p) => p.departFrom === q.from);
     if (category) items = items.filter((p) => p.categories.includes(category));
     if (q.promo === "1") items = items.filter((p) => p.promotion !== null);
+    if (party === "family") items = items.filter((p) => p.price.child !== null);
+    if (party === "company") items = items.filter((p) => p.categories.includes("doanh-nghiep"));
     if (month) items = items.filter((p) => departuresOf(p).some((d) => d.date.startsWith(month)));
     if (q.minPrice) items = items.filter((p) => p.price.adult >= Number(q.minPrice));
     if (q.maxPrice) items = items.filter((p) => p.price.adult <= Number(q.maxPrice));

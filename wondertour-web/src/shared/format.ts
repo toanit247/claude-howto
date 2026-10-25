@@ -53,6 +53,12 @@ export function formatCountdown(totalSeconds: number): string {
   return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
 }
 
+/** "2027-03" → "tháng 3/2027". */
+export function monthLabel(ym: string): string {
+  const [y, m] = ym.split("-");
+  return `tháng ${Number(m)}/${y}`;
+}
+
 export function formatDuration(days: number, nights: number): string {
   return nights > 0 ? `${days} ngày ${nights} đêm` : `${days} ngày`;
 }

@@ -22,7 +22,7 @@ export function upcomingMonths(now = new Date()): string[] {
   return out;
 }
 
-function filterFromQuery(query: URLSearchParams) {
+export function filterFromQuery(query: URLSearchParams) {
   const raw: Record<string, string> = {};
   for (const [k, v] of query) if (v !== "") raw[k] = v;
   const budget = BUDGETS.find((b) => b.value === raw.budget);

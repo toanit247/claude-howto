@@ -2,6 +2,7 @@
 // Bản đề xuất cho đặc tả G3: khi xTravelOS xuất /openapi.json chính thức, chạy `npm run gen:types`
 // rồi đối chiếu lại file này. z.object bỏ qua trường lạ, đúng quy ước "web bỏ qua trường lạ".
 import { z } from "zod";
+import { PARTY_KEYS } from "./party";
 import { PRODUCT_SORTS } from "./sorts";
 
 const money = z.int().nonnegative();
@@ -308,6 +309,8 @@ export const ProductFilter = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
   from: z.string().trim().max(40).optional(),
   category: slug.optional(),
+  // Đi cùng ai: xTravelOS quyết cách lọc (gia đình → tour có giá trẻ em, công ty → tour đoàn).
+  party: z.enum(PARTY_KEYS).optional(),
   // "1": chỉ lấy tour đang có ưu đãi.
   promo: z.enum(["1"]).optional(),
   minPrice: z.coerce.number().int().nonnegative().optional(),

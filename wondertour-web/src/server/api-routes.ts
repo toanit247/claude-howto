@@ -17,6 +17,7 @@ import {
 import type { Catalog } from "./catalog";
 import type { TtlCache } from "./cache";
 import type { AppConfig } from "./config";
+import { filterFromQuery } from "./pages";
 import { RateLimiter } from "./rate-limit";
 import { clearSession, readSession, writeSession } from "./session";
 import { UpstreamError, type XTravelClient } from "./xtravel";
@@ -103,6 +104,16 @@ export function apiRouter(deps: {
     "/session",
     ah(async (req, res) => {
       res.json({ agent: readSession(req)?.profile ?? null });
+    }),
+  );
+
+  // Đếm và liệt kê tour theo câu tìm tour (dữ liệu công khai, qua bản tạm 60 giây).
+  r.get(
+    "/products",
+    ah(async (req, res) => {
+      const filter = filterFromQuery(new URLSearchParams(req.query as Record<string, string>));
+      const pageSize = Math.min(24, Math.max(1, Number(req.query.pageSize) || 1));
+      res.json(await catalog.listProducts({ ...filter, pageSize }));
     }),
   );
 

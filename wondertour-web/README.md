@@ -84,9 +84,9 @@ XTRAVEL_CONTRACT_URL=http://127.0.0.1:8766 XTRAVEL_CONTRACT_KEY=<khóa thử> np
 
 ## Tính năng bán hàng
 
-- Chọn nơi khởi hành ở đầu trang (nhớ cho lần sau); trang chủ và ô tìm kiếm ưu tiên tour đi từ đó.
+- **Câu tìm tour** thay cho ô tìm kiếm và bộ lọc: "Tôi muốn đi [đâu đó] vào [tháng nào] cùng [ai], ngân sách [bao nhiêu]". Bấm từng chỗ trống để chọn; nút hiện ngay số tour khớp; "đi cùng ai" tự điền số khách khi đặt chỗ; web nhớ câu lần trước trong trình duyệt người xem.
+- Chọn nơi khởi hành ở đầu trang (nhớ cho lần sau); trang chủ ưu tiên tour đi từ đó.
 - Lưới dịch vụ bằng biểu tượng (tour trong nước, nước ngoài, đoàn MICE, teambuilding, tour học sinh, visa, vé máy bay, SIM eSIM), khai báo trong `brand/*.json`.
-- Ô tìm kiếm một dòng "Bạn muốn đi đâu?"; tháng, nơi khởi hành, ngân sách gấp sau nút "Bộ lọc" trên điện thoại; sắp xếp theo ngày đi hoặc giá.
 - "Ưu đãi hôm nay" và "Khám phá điểm đến" vuốt ngang trên điện thoại.
 - Bảng "Sắp khởi hành" ở trang chủ, thẻ tour hiện ngày đi gần nhất và "Còn N chỗ".
 - Lịch khởi hành theo tháng kèm giá từng ngày; giữ chỗ có đếm ngược; danh sách khách; mã VietQR, chép số tài khoản và nội dung bằng một chạm; trạng thái tiền tự cập nhật.
