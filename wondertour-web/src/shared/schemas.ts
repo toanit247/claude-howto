@@ -15,8 +15,9 @@ const isoInstant = z.iso.datetime({ offset: true });
 export const Media = z.object({
   id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
   alt: z.string(),
-  width: z.int().positive(),
-  height: z.int().positive(),
+  // xTravelOS trả null khi chưa đọc được kích thước ảnh.
+  width: z.int().positive().nullable().default(null),
+  height: z.int().positive().nullable().default(null),
 });
 export type Media = z.infer<typeof Media>;
 

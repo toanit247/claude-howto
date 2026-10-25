@@ -24,8 +24,8 @@ export function Picture({
         src={mediaUrl(media.id, 768, "webp")}
         srcSet={srcset("webp")}
         sizes={sizes}
-        width={media.width}
-        height={media.height}
+        width={media.width ?? undefined}
+        height={media.height ?? undefined}
         alt={media.alt}
         loading={priority ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : "auto"}

@@ -1,5 +1,5 @@
 // Điểm chạy bản thật: phục vụ gói giao diện đã build và dựng trang bằng entry-server đã build.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { AppData } from "../shared/routes";
@@ -8,6 +8,8 @@ import { loadConfig } from "./config";
 import { log } from "./logger";
 
 const dist = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// Chạy trên máy: nạp .env nếu có. loadEnvFile không ghi đè biến đã đặt sẵn nên Railway không bị ảnh hưởng.
+if (existsSync(".env")) process.loadEnvFile(".env");
 const config = loadConfig();
 const template = readFileSync(resolve(dist, "client/index.html"), "utf8");
 const entry = (await import(pathToFileURL(resolve(dist, "server-entry/entry-server.js")).href)) as {

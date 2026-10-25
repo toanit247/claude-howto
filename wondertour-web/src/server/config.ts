@@ -58,7 +58,9 @@ export interface AppConfig {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, root = process.cwd()): AppConfig {
-  const parsed = Env.safeParse(env);
+  // Biến để trống trong .env (ví dụ ADMIN_USERNAME=) coi như chưa đặt, không phải chuỗi rỗng.
+  const cleaned = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined && v !== ""));
+  const parsed = Env.safeParse(cleaned);
   if (!parsed.success) {
     // Chỉ in tên biến sai, không in giá trị (có thể là khóa bí mật).
     const fields = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
