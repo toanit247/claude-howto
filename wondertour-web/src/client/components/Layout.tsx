@@ -1,12 +1,15 @@
 import { useState, type ReactNode } from "react";
 import type { AppData } from "../../shared/routes";
+import { featureOn } from "../../shared/settings";
+import { ChatWidget } from "./ChatWidget";
 import { Icon } from "../icons";
 import { api } from "../lib/api";
 import { setCity, useBrowserValue, useCity, useSession } from "../lib/hooks";
 
 export function Layout({ data, children }: { data: AppData; children: ReactNode }) {
-  const { brand, siteKind, path } = data;
+  const { brand, siteKind, path, settings } = data;
   const alliance = siteKind === "alliance";
+  const on = (k: Parameters<typeof featureOn>[1]) => featureOn(settings, k);
   const nav = alliance
     ? [
         { href: "/tour", label: "Sản phẩm" },
@@ -14,10 +17,14 @@ export function Layout({ data, children }: { data: AppData; children: ReactNode 
       ]
     : [
         { href: "/tour", label: "Tour" },
+        ...(on("groupTours") ? [{ href: "/tour-doan", label: "Tour đoàn" }] : []),
+        ...(on("tickets") ? [{ href: "/ve-tham-quan", label: "Vé tham quan" }] : []),
         { href: "/bai-viet", label: "Cẩm nang" },
         { href: "/tra-cuu", label: "Tra cứu đơn" },
         { href: "/lien-he", label: "Liên hệ" },
       ];
+  // Liên hệ: quản trị viên sửa trong /quan-tri đè lên tệp thương hiệu.
+  const contact = { ...brand.contact, ...Object.fromEntries(Object.entries(settings.contact).filter(([, v]) => v)) } as typeof brand.contact;
   return (
     <div className="flex min-h-dvh flex-col">
       <a href="#noi-dung" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-2">
@@ -45,7 +52,7 @@ export function Layout({ data, children }: { data: AppData; children: ReactNode 
             </ul>
           </nav>
           <div className="ml-auto flex items-center gap-2 md:ml-0">
-            {!alliance && brand.departureCities.length ? <CityPicker cities={brand.departureCities} /> : null}
+            {!alliance && on("cityPicker") && brand.departureCities.length ? <CityPicker cities={brand.departureCities} /> : null}
             <AccountLink alliance={alliance} />
           </div>
         </div>
@@ -79,20 +86,20 @@ export function Layout({ data, children }: { data: AppData; children: ReactNode 
               <Icon name="pin" className="mt-0.5 size-4 shrink-0" />
               {brand.contact.address}
             </p>
-            {brand.contact.branches.length ? <p className="mt-2">Chi nhánh: {brand.contact.branches.join(", ")}</p> : null}
-            {brand.contact.hotline ? (
+            {contact.branches.length ? <p className="mt-2">Chi nhánh: {contact.branches.join(", ")}</p> : null}
+            {contact.hotline ? (
               <p className="mt-2 flex gap-2">
                 <Icon name="phone" className="mt-0.5 size-4 shrink-0" />
-                <a href={`tel:${brand.contact.hotline.replace(/\s/g, "")}`} className="hover:text-white">
-                  {brand.contact.hotline}
+                <a href={`tel:${contact.hotline.replace(/\s/g, "")}`} className="hover:text-white">
+                  {contact.hotline}
                 </a>
               </p>
             ) : null}
-            {brand.contact.email ? (
+            {contact.email ? (
               <p className="mt-2 flex gap-2">
                 <Icon name="mail" className="mt-0.5 size-4 shrink-0" />
-                <a href={`mailto:${brand.contact.email}`} className="hover:text-white">
-                  {brand.contact.email}
+                <a href={`mailto:${contact.email}`} className="hover:text-white">
+                  {contact.email}
                 </a>
               </p>
             ) : null}
@@ -101,6 +108,8 @@ export function Layout({ data, children }: { data: AppData; children: ReactNode 
             <p className="font-semibold text-white">Thông tin</p>
             <ul className="mt-1">
               <li><a href="/chinh-sach-quyen-rieng-tu" className="inline-block py-2 hover:text-white">Chính sách quyền riêng tư</a></li>
+              {on("groupTours") && !alliance ? <li><a href="/tour-doan" className="inline-block py-2 hover:text-white">Tour đoàn</a></li> : null}
+              {on("tickets") && !alliance ? <li><a href="/ve-tham-quan" className="inline-block py-2 hover:text-white">Vé tham quan</a></li> : null}
               <li><a href="/tra-cuu" className="inline-block py-2 hover:text-white">Tra cứu đơn đặt chỗ</a></li>
               <li><a href="/dai-ly/dang-nhap" className="inline-block py-2 hover:text-white">{alliance ? "Đăng nhập cổng liên minh" : "Đại lý, cộng tác viên"}</a></li>
             </ul>
@@ -113,7 +122,8 @@ export function Layout({ data, children }: { data: AppData; children: ReactNode 
         </div>
       </footer>
 
-      {alliance ? null : <FloatingContact data={data} />}
+      {alliance ? null : <FloatingContact data={data} contact={contact} />}
+      {!alliance && on("chatbot") && data.page.page !== "admin" ? <ChatWidget settings={settings} brandName={brand.name} /> : null}
       <CookieBanner />
     </div>
   );
@@ -174,9 +184,9 @@ function AccountLink({ alliance }: { alliance: boolean }) {
 }
 
 /** Nút liên hệ nổi: gọi hotline, nhắn Zalo, hoặc để lại số để được gọi lại. */
-function FloatingContact({ data }: { data: AppData }) {
-  const { hotline, zalo } = data.brand.contact;
-  if (data.page.page === "product") return null; // trang tour đã có thanh đặt chỗ dưới màn hình
+function FloatingContact({ data, contact }: { data: AppData; contact: AppData["brand"]["contact"] }) {
+  const { hotline, zalo } = contact;
+  if (data.page.page === "product" || data.page.page === "admin") return null; // trang tour đã có thanh đặt chỗ dưới màn hình
   return (
     <div className="fixed right-4 bottom-4 z-20 flex flex-col gap-2">
       {zalo ? (

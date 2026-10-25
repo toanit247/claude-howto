@@ -16,7 +16,7 @@ export function newIdempotencyKey(): string {
 
 export async function api<T>(
   path: string,
-  init: { method?: "GET" | "POST"; body?: unknown; idempotencyKey?: string } = {},
+  init: { method?: "GET" | "POST" | "PUT"; body?: unknown; idempotencyKey?: string } = {},
 ): Promise<T> {
   const headers: Record<string, string> = { accept: "application/json" };
   if (init.body !== undefined) headers["content-type"] = "application/json";

@@ -179,6 +179,46 @@ export function buildHead(data: AppData, config: AppConfig): string {
     case "privacy":
       h = { ...h, title: `Chính sách quyền riêng tư — ${brand.name}` };
       break;
+    case "group":
+      h = {
+        ...h,
+        title: `Tour đoàn: doanh nghiệp, MICE, teambuilding, học sinh — ${brand.name}`,
+        description: clip(`Tour đoàn doanh nghiệp, hội nghị, teambuilding, gala, tour học sinh do ${brand.name} tổ chức. Đề xuất riêng cho từng đoàn.`),
+        canonicalPath: "/tour-doan",
+        jsonLd: [org, crumbs([["Trang chủ", "/"], ["Tour đoàn", "/tour-doan"]])],
+      };
+      break;
+    case "tickets":
+      h = { ...h, title: `Vé tham quan khu vui chơi — ${brand.name}`, canonicalPath: "/ve-tham-quan" };
+      break;
+    case "ticket": {
+      const t = page.ticket;
+      const path = paths.ticket(t.slug);
+      h = {
+        ...h,
+        title: `${t.name} — ${brand.name}`,
+        description: clip(t.summary),
+        canonicalPath: path,
+        image: t.image,
+        type: "product",
+        jsonLd: [
+          org,
+          {
+            "@type": "Product",
+            name: t.name,
+            description: t.summary,
+            url: abs(path),
+            ...(t.image ? { image: abs(mediaUrl(t.image.id, 1024, "webp")) } : {}),
+            offers: { "@type": "Offer", price: t.price.adult, priceCurrency: "VND", url: abs(path), availability: "https://schema.org/InStock" },
+          },
+          crumbs([["Trang chủ", "/"], ["Vé tham quan", "/ve-tham-quan"], [t.name, path]]),
+        ],
+      };
+      break;
+    }
+    case "admin":
+      h = { ...h, title: `Quản trị web — ${brand.name}`, noindex: true, canonicalPath: null };
+      break;
     case "not-found":
       h = { ...h, title: `Không tìm thấy trang — ${brand.name}`, noindex: true, canonicalPath: null };
       break;
@@ -218,6 +258,7 @@ export function robotsTxt(config: AppConfig): string {
     "User-agent: *",
     "Allow: /",
     "Disallow: /api/",
+    "Disallow: /quan-tri",
     "Disallow: /dai-ly",
     "Disallow: /tra-cuu",
     `Sitemap: ${config.publicBaseUrl}/sitemap.xml`,

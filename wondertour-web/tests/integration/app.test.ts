@@ -8,10 +8,15 @@ import { render } from "../../src/client/entry-server";
 import { createApp } from "../../src/server/app";
 import { loadConfig } from "../../src/server/config";
 import { sign } from "../../src/server/hmac";
+import { hashPassword } from "../../src/server/admin";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 process.env.LOG_SILENT = "1";
 const API_KEY = "test-service-key-0123456789abcdef";
 const WEBHOOK = "test-webhook-secret-0123456789abc";
+const ADMIN_HASH = hashPassword("mat-khau-quan-tri-123");
 const TEMPLATE = `<!doctype html><html><head><!--app-head--></head><body><div id="app"><!--app-html--></div><!--app-data--></body></html>`;
 
 let mockServer: Server;
@@ -27,6 +32,7 @@ function makeApp(apiUrl = mockUrl, extra: Record<string, string> = {}) {
     COOKIE_SECRET: "test-cookie-secret-0123456789",
     COOKIE_SECURE: "false",
     XTRAVEL_TIMEOUT_MS: "2000",
+    SETTINGS_FILE: join(mkdtempSync(join(tmpdir(), "wt-app-")), "site.json"),
     ...extra,
   });
   return createApp({ config, renderer: { template: async () => TEMPLATE, render: async (d) => render(d) } });
@@ -272,5 +278,116 @@ describe("cấu hình", () => {
     } catch (e) {
       expect(String(e)).not.toContain("short-secret");
     }
+  });
+});
+
+describe("vé tham quan", () => {
+  it("trang danh sách và trang vé dựng phía máy chủ; đặt vé trả VietQR; bấm hai lần một đơn", async () => {
+    const { app } = makeApp(mockUrl, { APP_ENV: "production", COOKIE_SECURE: "true" });
+    const list = await request(app).get("/ve-tham-quan").expect(200);
+    expect(list.text).toContain("Vé Sun World Ba Na Hills");
+    const page = await request(app).get("/ve-tham-quan/ve-sun-world-ba-na-hills").expect(200);
+    expect(page.text).toContain('"@type":"Product"');
+    const k = idem();
+    const order = {
+      ticketSlug: "ve-sun-world-ba-na-hills",
+      visitDate: new Date(Date.now() + 3 * 86400_000).toISOString().slice(0, 10),
+      qty: { adult: 2, child: 1 },
+      contact: { fullName: "Lê Văn Cường", phone: "0901112223" },
+      consentPurpose: true,
+      marketingOptIn: false,
+    };
+    const [a, b] = await Promise.all([
+      request(app).post("/api/ticket-orders").set("Idempotency-Key", k).send(order),
+      request(app).post("/api/ticket-orders").set("Idempotency-Key", k).send(order),
+    ]);
+    expect(a.status).toBe(201);
+    expect(a.body.code).toBe(b.body.code);
+    expect(a.body.total).toBe(950_000 * 2 + 750_000);
+    expect(a.body.payment.qrImage).toMatch(/^data:image\/png;base64,/);
+    expect(a.body.productName).toBe("Vé Sun World Ba Na Hills");
+    await request(app).get("/sitemap.xml").expect(200).expect((r) => expect(r.text).toContain("/ve-tham-quan/ve-sun-world-ba-na-hills"));
+  });
+});
+
+describe("quản trị web", () => {
+  it("chưa cấu hình tài khoản thì trang báo cách bật; đăng nhập trả 503", async () => {
+    const { app } = makeApp();
+    const page = await request(app).get("/quan-tri").expect(200);
+    expect(page.text).toContain("Chưa có tài khoản quản trị");
+    expect(page.headers["cache-control"]).toBe("private, no-store");
+    await request(app).post("/api/admin/login").send({ username: "admin", password: "x" }).expect(503);
+  });
+
+  it("đăng nhập, lưu cấu hình, tắt vé tham quan thì trang vé 404 và menu ẩn", async () => {
+    const { app } = makeApp(mockUrl, { ADMIN_USERNAME: "admin", ADMIN_PASSWORD_HASH: ADMIN_HASH });
+    await request(app).post("/api/admin/login").send({ username: "admin", password: "sai-mat-khau-roi" }).expect(401);
+    await request(app).get("/api/admin/settings").expect(401);
+    const agent = request.agent(app);
+    const login = await agent.post("/api/admin/login").send({ username: "admin", password: "mat-khau-quan-tri-123" }).expect(200);
+    const cookies = ([] as string[]).concat(login.headers["set-cookie"] ?? []);
+    expect(cookies.some((c) => c.startsWith("wt_admin=") && /HttpOnly/i.test(c) && /SameSite=Strict/i.test(c))).toBe(true);
+    const current = await agent.get("/api/admin/settings").expect(200);
+    expect(current.body.features.tickets).toBe(true);
+    await agent.put("/api/admin/settings").send({ ...current.body, features: { ...current.body.features, tickets: false }, contact: { hotline: "1900 1234" } }).expect(200);
+    await request(app).get("/ve-tham-quan").expect(404);
+    await request(app).post("/api/ticket-orders").set("Idempotency-Key", idem()).send({}).expect(404);
+    const home = await request(app).get("/").expect(200);
+    expect(home.text).not.toContain('href="/ve-tham-quan"');
+    expect(home.text).toContain("1900 1234");
+    await agent.put("/api/admin/settings").send({ services: [{ label: "", icon: "x", href: "/" }] }).expect(422);
+    await agent.post("/api/admin/logout").send({}).expect(204);
+    await agent.get("/api/admin/settings").expect(401);
+  });
+
+  it("robots chặn /quan-tri; trang quản trị noindex", async () => {
+    const { app } = makeApp(mockUrl, { APP_ENV: "production", COOKIE_SECURE: "true" });
+    const robots = await request(app).get("/robots.txt").expect(200);
+    expect(robots.text).toContain("Disallow: /quan-tri");
+    const page = await request(app).get("/quan-tri").expect(200);
+    expect(page.text).toContain('name="robots" content="noindex');
+  });
+});
+
+describe("trợ lý AI (chế độ cơ bản, không có khóa)", () => {
+  async function ask(app: Parameters<typeof request>[0], text: string) {
+    const res = await request(app).post("/api/chat").send({ messages: [{ role: "user", content: text }], path: "/" }).expect(200);
+    expect(res.headers["content-type"]).toContain("application/x-ndjson");
+    const events = res.text.trim().split("\n").map((l) => JSON.parse(l) as { type: string; text?: string });
+    expect(events.at(-1)?.type).toBe("done");
+    return events.filter((e) => e.type === "delta").map((e) => e.text).join("");
+  }
+
+  it("gợi ý tour theo điểm đến và đi cùng ai, kèm link trang tour", async () => {
+    const { app } = makeApp();
+    const text = await ask(app, "Gia đình 4 người muốn đi Phú Quốc");
+    expect(text).toContain("[Phú Quốc 3 ngày 2 đêm nghỉ dưỡng, cáp treo Hòn Thơm](/tour/phu-quoc-3n2d-nghi-duong)");
+    expect(text).toContain("gia đình có trẻ nhỏ");
+  });
+
+  it("đoàn công ty thì dẫn sang tour đoàn và form liên hệ, không bán tour lẻ", async () => {
+    const { app } = makeApp();
+    const text = await ask(app, "Công ty em 120 người muốn đi teambuilding tháng 5");
+    expect(text).toContain("/tour-doan");
+    expect(text).toContain("/lien-he");
+  });
+
+  it("hỏi vé thì trả danh sách vé; câu mơ hồ thì hỏi lại hai điều", async () => {
+    const { app } = makeApp();
+    expect(await ask(app, "có vé Bà Nà không")).toContain("/ve-tham-quan/ve-sun-world-ba-na-hills");
+    expect(await ask(app, "chào em")).toContain("muốn đi đâu");
+  });
+
+  it("từ chối dữ liệu sai, tắt trợ lý thì 404, giới hạn lượt", async () => {
+    const { app } = makeApp();
+    await request(app).post("/api/chat").send({ messages: [] }).expect(422);
+    await request(app).post("/api/chat").send({ messages: [{ role: "assistant", content: "x" }] }).expect(422);
+    await request(app).post("/api/chat").send({ messages: [{ role: "user", content: "x".repeat(2001) }] }).expect(422);
+  });
+
+  it("xTravelOS tắt thì trợ lý báo bảo trì thay vì lỗi 500", async () => {
+    const { app } = makeApp("http://127.0.0.1:9");
+    const res = await request(app).post("/api/chat").send({ messages: [{ role: "user", content: "đi Nhật Bản" }] }).expect(200);
+    expect(res.text).toContain("bảo trì");
   });
 });

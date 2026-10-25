@@ -280,3 +280,59 @@ export const AGENTS = [
   { username: "daily01", password: "matkhau123", profile: { name: "Nguyễn Thu Hà", company: "Đại lý Thu Hà Travel", flow: "agent" as const, tier: "2" } },
   { username: "lienminh01", password: "matkhau123", profile: { name: "Trần Minh Quân", company: "Công ty Du lịch Sao Việt", flow: "alliance" as const, tier: null } },
 ];
+
+export interface MockTicket {
+  slug: string;
+  name: string;
+  place: string;
+  destination: { slug: string; name: string };
+  summary: string;
+  price: { adult: number; child: number | null };
+  vatIncluded: boolean;
+  validityNote: string;
+  openHours: string;
+  highlights: string[];
+  terms: string;
+}
+
+export const TICKETS: MockTicket[] = [
+  {
+    slug: "ve-sun-world-ba-na-hills",
+    name: "Vé Sun World Ba Na Hills",
+    place: "Đà Nẵng",
+    destination: { slug: "da-nang", name: "Đà Nẵng" },
+    summary: "Cáp treo lên Bà Nà, Cầu Vàng, làng Pháp, khu vui chơi Fantasy Park. Vé điện tử, quét mã tại cổng.",
+    price: { adult: 950_000, child: 750_000 },
+    vatIncluded: true,
+    validityNote: "Dùng đúng ngày đã chọn, đặt trước ít nhất 1 ngày",
+    openHours: "7:30 đến 21:30 hằng ngày",
+    highlights: ["Cầu Vàng và vườn hoa Le Jardin", "Làng Pháp, hầm rượu Debay", "Fantasy Park không giới hạn trò chơi"],
+    terms: "Trẻ em cao từ 1 m đến 1,4 m mua vé trẻ em; dưới 1 m miễn phí. Vé không hoàn, không đổi ngày.",
+  },
+  {
+    slug: "ve-vinwonders-phu-quoc",
+    name: "Vé VinWonders Phú Quốc",
+    place: "Phú Quốc",
+    destination: { slug: "phu-quoc", name: "Phú Quốc" },
+    summary: "Công viên chủ đề lớn nhất Việt Nam: thủy cung, công viên nước, lâu đài, show Once.",
+    price: { adult: 880_000, child: 660_000 },
+    vatIncluded: true,
+    validityNote: "Dùng trong ngày đã chọn",
+    openHours: "9:00 đến 19:00",
+    highlights: ["Thủy cung Sea Shell", "Công viên nước Aquatopia", "Show Once"],
+    terms: "Trẻ em cao từ 1 m đến 1,4 m mua vé trẻ em. Vé không hoàn.",
+  },
+  {
+    slug: "ve-du-thuyen-vinh-lan-ha-1-ngay",
+    name: "Vé du thuyền vịnh Lan Hạ 1 ngày",
+    place: "Cát Bà",
+    destination: { slug: "cat-ba", name: "Cát Bà" },
+    summary: "Du thuyền ngày, chèo kayak, tắm biển đảo Ba Trái Đào, bữa trưa hải sản trên tàu.",
+    price: { adult: 1_250_000, child: 900_000 },
+    vatIncluded: false,
+    validityNote: "Theo chuyến 8:00 hằng ngày, đặt trước 1 ngày",
+    openHours: "Đón 7:30 tại bến Bèo",
+    highlights: ["Chèo kayak hang Sáng Tối", "Bữa trưa hải sản", "Tắm biển bãi Ba Trái Đào"],
+    terms: "Hủy trước 48 giờ hoàn 100%. Thời tiết xấu cảng cấm biển thì đổi ngày hoặc hoàn tiền.",
+  },
+];

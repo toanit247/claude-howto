@@ -24,19 +24,14 @@
       "href": "/tour?category=nuoc-ngoai"
     },
     {
-      "label": "Đoàn, MICE",
-      "icon": "case",
-      "href": "/tour?category=doanh-nghiep"
+      "label": "Tour đoàn",
+      "icon": "users",
+      "href": "/tour-doan"
     },
     {
-      "label": "Teambuilding, gala",
-      "icon": "confetti",
-      "href": "/lien-he?nhu-cau=Teambuilding, gala dinner"
-    },
-    {
-      "label": "Tour học sinh",
-      "icon": "cap",
-      "href": "/lien-he?nhu-cau=Tour học sinh, sinh viên"
+      "label": "Vé tham quan",
+      "icon": "ticket",
+      "href": "/ve-tham-quan"
     },
     {
       "label": "Visa",
@@ -45,11 +40,16 @@
     },
     {
       "label": "Vé máy bay",
-      "icon": "ticket",
+      "icon": "plane",
       "href": "/lien-he?nhu-cau=Vé máy bay"
     },
     {
-      "label": "SIM, eSIM du lịch",
+      "label": "Khách sạn",
+      "icon": "building",
+      "href": "/lien-he?nhu-cau=Đặt khách sạn"
+    },
+    {
+      "label": "SIM, eSIM",
       "icon": "sim",
       "href": "https://simdulich.vn"
     }

@@ -85,3 +85,41 @@ test("câu tìm tour: điền chỗ trống → đếm tour → kết quả → 
   await expect(panel.getByLabel("Người lớn")).toHaveValue("2");
   await expect(panel.getByLabel(/Trẻ em/)).toHaveValue("2");
 });
+
+test("trợ lý AI: mở khung, bấm câu gợi ý, nhận gợi ý có link tour", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Chỉ cookie cần thiết" }).click();
+  await page.getByRole("button", { name: /^Trợ lý|^Wonder/ }).first().click();
+  const panel = page.locator("#wt-chat-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText("Em là trợ lý tư vấn");
+  await panel.getByRole("button", { name: "Gia đình 4 người đi biển dịp Tết" }).click();
+  await expect(panel.locator(".chat-u")).toContainText("Gia đình 4 người");
+  await expect(panel.locator(".chat-a").last()).toContainText(/tour|đi đâu/i, { timeout: 15_000 });
+  // Hội thoại giữ lại khi chuyển trang (trên điện thoại khung đóng lại, bấm mở).
+  await page.goto("/tour");
+  if (!(await page.locator("#wt-chat-panel").isVisible())) await page.getByRole("button", { name: /^Trợ lý|^Wonder/ }).first().click();
+  await expect(page.locator("#wt-chat-panel .chat-u")).toContainText("Gia đình 4 người");
+});
+
+test("quản trị: đăng nhập, tắt Ưu đãi hôm nay, trang chủ ẩn mục đó", async ({ page }) => {
+  test.skip(!process.env.E2E_ADMIN_HASH, "Cần E2E_ADMIN_HASH để thử trang quản trị");
+  await page.goto("/quan-tri");
+  await page.getByLabel("Tên đăng nhập").fill("admin");
+  await page.getByLabel("Mật khẩu").fill("mat-khau-quan-tri-123");
+  await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await expect(page.getByRole("heading", { name: "Khối hiển thị" })).toBeVisible();
+  const deals = page.getByRole("switch", { name: "Mục Ưu đãi hôm nay" });
+  const was = await deals.isChecked();
+  await deals.setChecked(!was);
+  await page.getByRole("button", { name: "Lưu cấu hình" }).click();
+  await expect(page.getByRole("status")).toContainText("Đã lưu");
+  await page.goto("/");
+  if (was) await expect(page.getByRole("heading", { name: /Ưu đãi hôm nay/ })).toHaveCount(0);
+  else await expect(page.getByRole("heading", { name: /Ưu đãi hôm nay/ })).toBeVisible();
+  // Trả lại như cũ.
+  await page.goto("/quan-tri");
+  await page.getByRole("switch", { name: "Mục Ưu đãi hôm nay" }).setChecked(was);
+  await page.getByRole("button", { name: "Lưu cấu hình" }).click();
+  await expect(page.getByRole("status")).toContainText("Đã lưu");
+});

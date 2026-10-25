@@ -73,6 +73,7 @@ XTRAVEL_CONTRACT_URL=http://127.0.0.1:8766 XTRAVEL_CONTRACT_KEY=<khóa thử> np
 | `src/shared/` | Hợp đồng dữ liệu (zod), định dạng tiền và ngày, bảng đường dẫn |
 | `mock-xtravelos/` | xTravelOS giả lập để phát triển và kiểm thử |
 | `brand/` | Cấu hình thương hiệu; doanh nghiệp khác chỉ cần tệp mới |
+| `ai/skills/` | Kỹ năng tư vấn tour cho trợ lý AI (SKILL.md) |
 | `tests/`, `e2e/` | Kiểm thử tự động |
 
 ## Hai web, một mã nguồn
@@ -82,7 +83,25 @@ XTRAVEL_CONTRACT_URL=http://127.0.0.1:8766 XTRAVEL_CONTRACT_KEY=<khóa thử> np
 
 Đổi thương hiệu: tạo `brand/<ten>.json` (tên, logo, màu, câu mở đầu, đoàn tiêu biểu, liên hệ, Zalo) rồi đặt `BRAND_CONFIG`. Không sửa mã.
 
+## Trợ lý AI tư vấn tour
+
+Khung chat ở góc dưới bên trái, nhìn giống trợ lý trong xTravelOS (khung 360×480, màu thương hiệu, bong bóng trắng viền xám). Hai chế độ:
+
+- Có `ANTHROPIC_API_KEY`: gọi Claude (`AI_MODEL`, mặc định `claude-opus-5-5`) với bốn công cụ tra dữ liệu thật qua máy chủ web: `search_tours`, `get_departures`, `list_tickets`, `group_options`. Chữ hiện dần (stream). Lời dẫn hệ thống lấy từ `ai/skills/tu-van-tour/SKILL.md` (kỹ năng tư vấn: hỏi ít, hỏi đúng, không bịa giá, không xác nhận thanh toán, không nhận giấy tờ qua chat, đoàn thì dẫn sang đề xuất riêng). Đã bật `fallbacks: "default"` để khi bộ lọc an toàn từ chối, hệ thống tự thử mô hình dự phòng.
+- Không có khóa: chế độ gợi ý cơ bản khớp từ khóa với danh mục (điểm đến, đi cùng ai, tháng, ngân sách, vé), đủ để chạy thử và kiểm thử tự động.
+
+Máy chủ web không lưu hội thoại; nhật ký không ghi nội dung khách gõ. Hội thoại giữ trong `sessionStorage` của trình duyệt khách. Giới hạn 30 tin mỗi 10 phút mỗi IP.
+
+## Quản trị web (/quan-tri)
+
+Một tài khoản quản trị đặt trong biến môi trường: `ADMIN_USERNAME` và `ADMIN_PASSWORD_HASH` (tạo bằng `node scripts/hash-password.mjs`). Trang quản trị cho bật tắt từng khối (câu tìm tour, ưu đãi, bảng khởi hành, vé tham quan, tour đoàn, trợ lý AI…), sửa lưới dịch vụ, lựa chọn trong trang Tour đoàn, hotline, email, Zalo, tên và câu chào của trợ lý. Cấu hình lưu ở `SETTINGS_FILE` (mặc định `data/site-settings.json`); trên Railway gắn Volume vào `data/` để không mất khi triển khai lại.
+
+Trang quản trị không đụng sản phẩm, giá, đơn hàng: những thứ đó ở xTravelOS.
+
 ## Tính năng bán hàng
+
+- **Tour đoàn** (`/tour-doan`): gộp doanh nghiệp, hội nghị MICE, teambuilding, học sinh, nhóm riêng vào một cửa; mỗi lựa chọn dẫn tới tour có sẵn hoặc form đề xuất riêng.
+- **Vé tham quan** (`/ve-tham-quan`): vé khu vui chơi từ xTravelOS (`GET /tickets`, `POST /ticket-orders`), chọn ngày, số vé, thanh toán VietQR, trạng thái tiền tự cập nhật.
 
 - **Câu tìm tour** thay cho ô tìm kiếm và bộ lọc: "Tôi muốn đi [đâu đó] vào [tháng nào] cùng [ai], ngân sách [bao nhiêu]". Bấm từng chỗ trống để chọn; nút hiện ngay số tour khớp; "đi cùng ai" tự điền số khách khi đặt chỗ; web nhớ câu lần trước trong trình duyệt người xem.
 - Chọn nơi khởi hành ở đầu trang (nhớ cho lần sau); trang chủ ưu tiên tour đi từ đó.

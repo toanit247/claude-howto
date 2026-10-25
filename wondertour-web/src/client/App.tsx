@@ -5,6 +5,8 @@ import { AgentLoginPage, AgentPage, ContactPage, LookupPage } from "./pages/Form
 import { HomePage } from "./pages/HomePage";
 import { ProductPage } from "./pages/ProductPage";
 import { DestinationPage, ToursPage } from "./pages/ToursPage";
+import { AdminPage } from "./pages/AdminPage";
+import { GroupToursPage, TicketPage, TicketsPage } from "./pages/ServicePages";
 
 function Page({ data }: { data: AppData }) {
   const page = data.page;
@@ -31,6 +33,14 @@ function Page({ data }: { data: AppData }) {
       return <AgentPage data={data} />;
     case "privacy":
       return <PrivacyPage data={data} />;
+    case "group":
+      return <GroupToursPage data={data} />;
+    case "tickets":
+      return <TicketsPage data={data} page={page} />;
+    case "ticket":
+      return <TicketPage data={data} page={page} />;
+    case "admin":
+      return <AdminPage data={data} page={page} />;
     case "not-found":
       return <NotFoundPage />;
     case "maintenance":

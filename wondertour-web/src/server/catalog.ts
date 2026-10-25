@@ -5,6 +5,8 @@ import {
   DepartureList,
   ProductDetail,
   ProductList,
+  TicketDetail,
+  TicketList,
   type ProductFilter,
 } from "../shared/schemas";
 import type { TtlCache } from "./cache";
@@ -55,6 +57,18 @@ export class Catalog {
     return this.cache.wrap(`departures:${slug}`, SEATS_TTL_MS, ["departures", `departures:${slug}`, `product:${slug}`], load);
   }
 
+  listTickets(page = 1, pageSize = 24, destination?: string) {
+    return this.cache.wrap(`tickets:${page}:${pageSize}:${destination ?? ""}`, CONTENT_TTL_MS, ["tickets"], () =>
+      this.api.call("/tickets", TicketList, { query: { page, pageSize, destination } }),
+    );
+  }
+
+  getTicket(slug: string) {
+    return this.cache.wrap(`ticket:${slug}`, CONTENT_TTL_MS, [`ticket:${slug}`, "tickets"], () =>
+      this.api.call(`/tickets/${slug}`, TicketDetail),
+    );
+  }
+
   listArticles(page = 1, pageSize = 12) {
     return this.cache.wrap(`articles:${page}:${pageSize}`, CONTENT_TTL_MS, ["articles"], () =>
       this.api.call("/articles", ArticleList, { query: { page, pageSize } }),
@@ -81,6 +95,8 @@ export class Catalog {
         if (page * list.pageSize >= list.total) break;
       }
       for (const d of destinations) out.push({ path: `/diem-den/${d}`, lastmod: null });
+      const tickets = await this.listTickets(1, 100);
+      for (const t of tickets.items) out.push({ path: `/ve-tham-quan/${t.slug}`, lastmod: null });
       for (let page = 1; page <= 50; page++) {
         const list = await this.listArticles(page, 100);
         for (const a of list.items) out.push({ path: `/bai-viet/${a.slug}`, lastmod: a.publishedAt.slice(0, 10) });

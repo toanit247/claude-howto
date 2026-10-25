@@ -39,6 +39,7 @@ export async function loadPage(
   route: { name: RouteName; slug: string | null },
   query: URLSearchParams,
   catalog: Catalog,
+  opts: { adminConfigured: boolean } = { adminConfigured: false },
 ): Promise<{ status: number; page: PageData }> {
   const ok = (page: PageData) => ({ status: 200, page });
   const notFound = { status: 404, page: { page: "not-found" } as PageData };
@@ -98,6 +99,16 @@ export async function loadPage(
         return ok({ page: "agent" });
       case "privacy":
         return ok({ page: "privacy" });
+      case "group":
+        return ok({ page: "group" });
+      case "tickets": {
+        const page = Math.max(1, Number(query.get("page")) || 1);
+        return ok({ page: "tickets", list: await catalog.listTickets(page, 24) });
+      }
+      case "ticket":
+        return ok({ page: "ticket", ticket: await catalog.getTicket(route.slug ?? "") });
+      case "admin":
+        return ok({ page: "admin", configured: opts.adminConfigured });
     }
   } catch (err) {
     if (err instanceof UpstreamError && err.status === 404) return notFound;

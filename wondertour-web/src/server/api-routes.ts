@@ -13,7 +13,9 @@ import {
   HoldInput,
   LeadInput,
   LookupInput,
+  TicketOrderInput,
 } from "../shared/schemas";
+import { chat, ChatInput, type ChatDeps } from "./chat";
 import type { Catalog } from "./catalog";
 import type { TtlCache } from "./cache";
 import type { AppConfig } from "./config";
@@ -67,8 +69,10 @@ export function apiRouter(deps: {
   api: XTravelClient;
   catalog: Catalog;
   cache: TtlCache;
+  chatDeps: ChatDeps;
+  featureOn: (key: "tickets" | "chatbot") => boolean;
 }): express.Router {
-  const { config, api, catalog, cache } = deps;
+  const { config, api, catalog, cache, chatDeps } = deps;
   const r = express.Router();
   const allowedOrigin = new URL(config.publicBaseUrl).origin;
 
@@ -78,6 +82,8 @@ export function apiRouter(deps: {
     leadIp: new RateLimiter(5, 10 * 60_000),
     leadPhone: new RateLimiter(3, 60 * 60_000),
     lookup: new RateLimiter(30, 10 * 60_000),
+    ticket: new RateLimiter(10, 10 * 60_000),
+    chat: new RateLimiter(30, 10 * 60_000),
     login: new RateLimiter(10, 10 * 60_000),
   };
 
@@ -174,6 +180,35 @@ export function apiRouter(deps: {
       });
       cache.purgeTag("departures");
       res.status(201).json(booking);
+    }),
+  );
+
+  r.post(
+    "/ticket-orders",
+    ah(async (req, res) => {
+      if (!deps.featureOn("tickets")) throw new HttpError(404, "Vé tham quan đang tắt.");
+      limit(limits.ticket, `ip:${req.ip}`);
+      const key = idempotencyKey(req);
+      const input = parse(TicketOrderInput, req.body);
+      const booking = await api.call("/ticket-orders", Booking, { method: "POST", body: input, idempotencyKey: key });
+      res.status(201).json(booking);
+    }),
+  );
+
+  // Trợ lý AI: trả lời dạng dòng JSON (NDJSON) để chữ hiện dần.
+  r.post(
+    "/chat",
+    ah(async (req, res) => {
+      if (!deps.featureOn("chatbot")) throw new HttpError(404, "Trợ lý đang tắt.");
+      limit(limits.chat, `ip:${req.ip}`);
+      const input = parse(ChatInput, req.body);
+      res.status(200).set({ "Content-Type": "application/x-ndjson; charset=utf-8", "X-Accel-Buffering": "no" });
+      res.flushHeaders();
+      for await (const ev of chat(input, chatDeps)) {
+        if (res.destroyed) break;
+        res.write(JSON.stringify(ev) + "\n");
+      }
+      res.end();
     }),
   );
 

@@ -13,6 +13,10 @@ const env = {
   COOKIE_SECRET: "e2e-cookie-secret-0123456789",
   COOKIE_SECURE: "false",
   LOG_SILENT: "1",
+  ADMIN_USERNAME: "admin",
+  // scrypt của "mat-khau-quan-tri-123", chỉ dùng cho kiểm thử
+  ADMIN_PASSWORD_HASH: process.env.E2E_ADMIN_HASH ?? "",
+  SETTINGS_FILE: "test-results/site-settings.e2e.json",
 };
 
 export default defineConfig({

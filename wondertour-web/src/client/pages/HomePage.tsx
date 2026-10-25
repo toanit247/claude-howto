@@ -8,9 +8,11 @@ import { SentenceSearch } from "../components/SentenceSearch";
 import { TourCard } from "../components/TourCard";
 import { Picture } from "../components/ui";
 import { setCity, useCity } from "../lib/hooks";
+import { featureOn } from "../../shared/settings";
 
 export function HomePage({ data, page }: { data: AppData; page: Extract<PageData, { page: "home" }> }) {
-  const { brand } = data;
+  const { brand, settings } = data;
+  const on = (k: Parameters<typeof featureOn>[1]) => featureOn(settings, k);
   const city = useCity();
   // Lọc theo nơi khởi hành ngay trên trình duyệt; HTML dựng sẵn vẫn là bản đầy đủ dùng chung cho mọi người.
   const byCity = city ? page.products.filter((p) => p.departFrom === city) : page.products;
@@ -20,6 +22,7 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
       <section className="bg-primary text-white">
         <div className="wrap pt-8 pb-20 sm:pt-14 sm:pb-28">
           <p className="mb-5 text-sm font-semibold text-soft sm:text-base">{brand.name}, {brand.slogan.toLowerCase()}</p>
+          {on("sentenceSearch") ? (
           <SentenceSearch
             facets={page.facets}
             months={page.months}
@@ -31,20 +34,29 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
               </p>
             }
           />
+          ) : (
+            <h1 className="max-w-3xl text-[1.75rem] text-white sm:text-5xl">{brand.hero.title}</h1>
+          )}
         </div>
       </section>
 
-      <div className="wrap -mt-12 sm:-mt-16">
-        <div className="rounded-2xl bg-white p-4 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-6">
-          <ServiceGrid services={brand.services} />
+      {on("serviceGrid") ? (
+        <div className="wrap -mt-12 sm:-mt-16">
+          <div className="rounded-2xl bg-white p-4 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-6">
+            <ServiceGrid
+              services={settings.services.filter(
+                (s) => (on("tickets") || !s.href.startsWith("/ve-tham-quan")) && (on("groupTours") || !s.href.startsWith("/tour-doan")),
+              )}
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <DealsSection deals={page.deals} />
+      {on("deals") ? <DealsSection deals={page.deals} /> : null}
 
-      <DepartureBoard products={products} />
+      {on("departureBoard") ? <DepartureBoard products={products} /> : null}
 
-      <DestinationStrip destinations={page.facets.destinations} />
+      {on("destinations") ? <DestinationStrip destinations={page.facets.destinations} /> : null}
 
       <section aria-labelledby="tour-title" className="wrap mt-14">
         <div className="flex items-end justify-between gap-4">
@@ -68,7 +80,7 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
         </div>
       </section>
 
-      {brand.proof.length ? (
+      {on("proof") && brand.proof.length ? (
         <section aria-labelledby="proof-title" className="mt-16 bg-mist py-12 sm:py-14">
           <div className="wrap grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:gap-10">
             <div>
@@ -92,9 +104,9 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
         </section>
       ) : null}
 
-      <RecentTours />
+      {on("recentTours") ? <RecentTours /> : null}
 
-      {page.articles.length ? (
+      {on("articles") && page.articles.length ? (
         <section aria-labelledby="art-title" className="wrap mt-16">
           <h2 id="art-title" className="text-2xl sm:text-3xl">Cẩm nang trước chuyến đi</h2>
           <div className="mt-6 grid gap-6 md:grid-cols-3">

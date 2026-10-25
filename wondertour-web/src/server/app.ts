@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { z } from "zod";
 import { matchRoute, MEDIA_FORMATS, MEDIA_WIDTHS, type AppData, type PageData } from "../shared/routes";
 import { WebhookEvent } from "../shared/schemas";
+import { adminRouter, readAdmin } from "./admin";
 import { ah, apiRouter, HttpError } from "./api-routes";
 import { TtlCache } from "./cache";
 import { Catalog } from "./catalog";
@@ -16,6 +17,8 @@ import { loadPage } from "./pages";
 import { htmlDocument, type Renderer } from "./render";
 import { brandCss, buildHead, robotsTxt, sitemapXml } from "./seo";
 import { readSession } from "./session";
+import { SettingsStore } from "./settings-store";
+import { featureOn, publicSettings, type FeatureKey } from "../shared/settings";
 import { MAINTENANCE_DETAIL, UpstreamError, UpstreamUnavailable, XTravelClient } from "./xtravel";
 
 export interface AppOptions {
@@ -32,6 +35,8 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   // Mất kết nối xTravelOS thì xóa sạch bản tạm: không bán bằng dữ liệu cũ.
   const api = new XTravelClient(config.xtravel, () => cache.clear());
   const catalog = new Catalog(api, cache);
+  const settings = new SettingsStore(config.settingsFile, config.brand);
+  const on = (k: FeatureKey) => featureOn(settings.get(), k);
   const isProd = config.nodeEnv === "production";
 
   const app = express();
@@ -114,6 +119,8 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
     }
     const tags = event.event.startsWith("article")
       ? [`article:${event.slug}`, "articles", "sitemap"]
+      : event.event.startsWith("ticket")
+        ? [`ticket:${event.slug}`, "tickets", "sitemap"]
       : event.event === "departures.updated"
         ? [`departures:${event.slug}`]
         : [`product:${event.slug}`, "products", "sitemap"];
@@ -167,10 +174,22 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   );
 
   app.use(cookieParser(config.cookieSecret));
-  app.use("/api", express.json({ limit: "100kb" }), apiRouter({ config, api, catalog, cache }));
+  app.use("/api/admin", express.json({ limit: "200kb" }), adminRouter({ config, store: settings, onSettingsChange: () => cache.purgeTag("sitemap") }));
+  app.use(
+    "/api",
+    express.json({ limit: "100kb" }),
+    apiRouter({
+      config,
+      api,
+      catalog,
+      cache,
+      featureOn: on,
+      chatDeps: { config, brand: config.brand, catalog, settings: () => settings.get() },
+    }),
+  );
 
   const renderPage = async (url: string, status: number, page: PageData, path: string, priv: boolean) => {
-    const data: AppData = { brand: config.brand, siteKind: config.siteKind, path, page };
+    const data: AppData = { brand: config.brand, settings: publicSettings(settings.get()), siteKind: config.siteKind, path, page };
     const [template, appHtml] = await Promise.all([renderer.template(url), renderer.render(data)]);
     return { status, html: htmlDocument(template, buildHead(data, config), appHtml, data), priv };
   };
@@ -195,12 +214,14 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
       let out;
       if (api.isDown()) {
         out = await renderPage(req.originalUrl, 503, { page: "maintenance" }, req.path, false);
-      } else if (!route) {
+      } else if (!route || (!on("tickets") && (route.name === "tickets" || route.name === "ticket")) || (!on("groupTours") && route.name === "group")) {
         out = await renderPage(req.originalUrl, 404, { page: "not-found" }, req.path, false);
       } else {
         try {
-          const { status, page } = await loadPage(route, new URLSearchParams(req.query as Record<string, string>), catalog);
-          const priv = isAlliance || route.name === "agent" || route.name === "agent-login" || route.name === "lookup";
+          const { status, page } = await loadPage(route, new URLSearchParams(req.query as Record<string, string>), catalog, {
+            adminConfigured: config.admin !== null,
+          });
+          const priv = isAlliance || ["agent", "agent-login", "lookup", "admin"].includes(route.name);
           out = await renderPage(req.originalUrl, status, page, req.path, priv);
         } catch (err) {
           if (!(err instanceof UpstreamUnavailable)) throw err;
@@ -244,5 +265,6 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   };
   app.use(onError);
 
-  return { app, cache, api };
+  void readAdmin;
+  return { app, cache, api, settings };
 }

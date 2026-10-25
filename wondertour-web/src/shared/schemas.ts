@@ -224,6 +224,39 @@ export const AgentStatement = z.object({
 });
 export type AgentStatement = z.infer<typeof AgentStatement>;
 
+// ---------- Vé tham quan khu vui chơi ----------
+
+export const TicketSummary = z.object({
+  slug,
+  name: z.string(),
+  place: z.string(),
+  destination: DestinationRef,
+  summary: z.string(),
+  price: z.object({ adult: money, child: money.nullable() }),
+  vatIncluded: z.boolean(),
+  image: Media.nullable(),
+  validityNote: z.string().max(200),
+});
+export type TicketSummary = z.infer<typeof TicketSummary>;
+
+export const TicketList = z.object({
+  items: z.array(TicketSummary),
+  page: z.int().positive(),
+  pageSize: z.int().positive(),
+  total: z.int().nonnegative(),
+});
+export type TicketList = z.infer<typeof TicketList>;
+
+export const TicketDetail = TicketSummary.extend({
+  openHours: z.string().max(120),
+  highlights: z.array(z.string()),
+  terms: z.string(),
+  // Ngày sớm nhất có thể dùng vé (vé điện tử thường cần đặt trước 1 ngày).
+  earliestDate: isoDate,
+  updatedAt: isoInstant,
+});
+export type TicketDetail = z.infer<typeof TicketDetail>;
+
 export const ApiErrorBody = z.object({ detail: z.string().min(1).max(500) });
 
 export const WebhookEvent = z.object({
@@ -233,6 +266,8 @@ export const WebhookEvent = z.object({
     "departures.updated",
     "article.updated",
     "article.deleted",
+    "ticket.updated",
+    "ticket.deleted",
   ]),
   slug,
 });
@@ -296,6 +331,20 @@ export const LeadInput = z.object({
   marketingOptIn: z.boolean(),
 });
 export type LeadInput = z.infer<typeof LeadInput>;
+
+export const TicketOrderInput = z.object({
+  ticketSlug: slug,
+  visitDate: isoDate,
+  qty: z.object({ adult: z.int().min(1).max(50), child: z.int().min(0).max(50) }),
+  contact: z.object({
+    fullName: personName,
+    phone: vnPhone,
+    email: z.email("Email chưa đúng").optional(),
+  }),
+  consentPurpose: z.literal(true, "Vui lòng đồng ý mục đích sử dụng thông tin"),
+  marketingOptIn: z.boolean(),
+});
+export type TicketOrderInput = z.infer<typeof TicketOrderInput>;
 
 export const AgentLoginInput = z.object({
   username: z.string().trim().min(3).max(64),

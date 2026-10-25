@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { BrandConfig } from "../../shared/brand";
+import type { ServiceItem } from "../../shared/settings";
 import { paths } from "../../shared/routes";
 import type { ProductList, ProductSummary } from "../../shared/schemas";
 import { Icon, isIconName } from "../icons";
@@ -7,12 +7,13 @@ import { TourCard } from "./TourCard";
 import { Picture } from "./ui";
 
 /** Lưới dịch vụ: 4 cột trên điện thoại, một hàng trên máy tính. */
-export function ServiceGrid({ services }: { services: BrandConfig["services"] }) {
-  if (!services.length) return null;
+export function ServiceGrid({ services }: { services: ServiceItem[] }) {
+  const items = services.filter((s) => s.enabled);
+  if (!items.length) return null;
   return (
     <nav aria-label="Dịch vụ">
-      <ul className="grid grid-cols-4 gap-x-1 gap-y-4 lg:grid-cols-8">
-        {services.map((s) => {
+      <ul className={`grid grid-cols-4 gap-x-1 gap-y-4 ${items.length > 6 ? "lg:grid-cols-8" : "lg:grid-cols-6"}`}>
+        {items.map((s) => {
           const external = /^https?:\/\//.test(s.href);
           return (
             <li key={s.label}>

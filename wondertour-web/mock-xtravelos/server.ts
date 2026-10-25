@@ -7,7 +7,7 @@ import QRCode from "qrcode";
 import { z } from "zod";
 import { sign } from "../src/server/hmac";
 import * as S from "../src/shared/schemas";
-import { AGENTS, ARTICLES, PRODUCTS, type MockProduct } from "./data";
+import { AGENTS, ARTICLES, PRODUCTS, TICKETS, type MockProduct, type MockTicket } from "./data";
 
 interface HoldRec {
   holdId: string;
@@ -366,6 +366,71 @@ export function createMockXTravel(opts: MockOptions) {
     res.json(bookingView(b));
   });
 
+  const ticketSummary = (t: MockTicket): S.TicketSummary => ({
+    slug: t.slug,
+    name: t.name,
+    place: t.place,
+    destination: t.destination,
+    summary: t.summary,
+    price: t.price,
+    vatIncluded: t.vatIncluded,
+    image: media(`${t.slug}-cover`, `Ảnh ${t.name}`),
+    validityNote: t.validityNote,
+  });
+
+  v1.get("/tickets", (req, res) => {
+    const dest = typeof req.query.destination === "string" ? req.query.destination : "";
+    const items = TICKETS.filter((t) => !dest || t.destination.slug === dest);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 24));
+    res.json({ items: items.slice((page - 1) * pageSize, page * pageSize).map(ticketSummary), page, pageSize, total: items.length });
+  });
+
+  v1.get("/tickets/:slug", (req, res) => {
+    const t = TICKETS.find((x) => x.slug === req.params.slug);
+    if (!t) return err(res, 404, "Không tìm thấy vé.");
+    res.json({
+      ...ticketSummary(t),
+      openHours: t.openHours,
+      highlights: t.highlights,
+      terms: t.terms,
+      earliestDate: vnToday(1),
+      updatedAt: new Date().toISOString(),
+    } satisfies S.TicketDetail);
+  });
+
+  v1.post(
+    "/ticket-orders",
+    idempotent(async (req) => {
+      const input = S.TicketOrderInput.safeParse(req.body);
+      if (!input.success) return { status: 422, body: { detail: "Thông tin đặt vé chưa đúng." } };
+      const t = TICKETS.find((x) => x.slug === input.data.ticketSlug);
+      if (!t) return { status: 404, body: { detail: "Không tìm thấy vé." } };
+      if (input.data.visitDate < vnToday(1)) return { status: 422, body: { detail: "Vé cần đặt trước ít nhất 1 ngày." } };
+      const total = t.price.adult * input.data.qty.adult + (t.price.child ?? t.price.adult) * input.data.qty.child;
+      const code = `VE${randomBytes(3).toString("hex").toUpperCase()}`;
+      const transferContent = `${code} VE`;
+      const qr = await QRCode.toDataURL(vietQrPayload("970436", "0000000001", total, transferContent), { margin: 1, width: 480 });
+      const rec: BookingRec = {
+        code,
+        product: PRODUCTS[0]!,
+        departureId: `ticket:${t.slug}`,
+        date: input.data.visitDate,
+        pax: { adult: input.data.qty.adult, child: input.data.qty.child, infant: 0 },
+        total,
+        deposit: total,
+        paidAmount: 0,
+        status: "awaiting_payment",
+        phone: normPhone(input.data.contact.phone),
+        session: null,
+        rejectionReason: null,
+        payment: { bankName: "Ngân hàng thử nghiệm (giả lập)", accountNo: "0000000001", accountName: "CONG TY WONDERTOUR (THU NGHIEM)", amount: total, transferContent, qrImage: qr },
+      };
+      bookings.set(code, rec);
+      return { status: 201, body: { ...bookingView(rec), productName: t.name } };
+    }),
+  );
+
   v1.get("/articles", (req, res) => {
     const page = Math.max(1, Number(req.query.page) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 12));
@@ -460,7 +525,7 @@ function bookingView(b: BookingRec): S.Booking {
   return {
     code: b.code,
     status: b.status,
-    productName: b.product.name,
+    productName: b.departureId.startsWith("ticket:") ? (TICKETS.find((t) => `ticket:${t.slug}` === b.departureId)?.name ?? b.product.name) : b.product.name,
     departureDate: b.date,
     pax: b.pax,
     total: b.total,
@@ -507,6 +572,9 @@ function openapi() {
       "/articles": { get: { responses: { ...ok(S.ArticleList), ...errs } } },
       "/articles/{slug}": { get: { responses: { ...ok(S.ArticleDetail), ...errs } } },
       "/media/{id}": { get: { responses: { "200": { description: "Ảnh AVIF, WebP, JPEG, PNG hoặc SVG" }, ...errs } } },
+      "/tickets": { get: { responses: { ...ok(S.TicketList), ...errs } } },
+      "/tickets/{slug}": { get: { responses: { ...ok(S.TicketDetail), ...errs } } },
+      "/ticket-orders": { post: { parameters: [idemHeader], requestBody: body(S.TicketOrderInput), responses: { ...ok(S.Booking, "201"), ...errs } } },
       "/leads": { post: { parameters: [idemHeader], requestBody: body(S.LeadInput), responses: { "201": { description: "Đã nhận" }, ...errs } } },
       "/agents/login": { post: { requestBody: body(S.AgentLoginInput), responses: { ...ok(S.AgentLoginResult), ...errs } } },
       "/agents/me/statement": { get: { security: [{ service: [], session: [] }], responses: { ...ok(S.AgentStatement), ...errs } } },

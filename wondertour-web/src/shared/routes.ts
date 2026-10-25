@@ -1,4 +1,5 @@
 import type { BrandConfig, SiteKind } from "./brand";
+import type { PublicSettings } from "./settings";
 import type {
   ArticleDetail,
   ArticleSummary,
@@ -7,6 +8,8 @@ import type {
   ProductFilter,
   ProductList,
   ProductSummary,
+  TicketDetail,
+  TicketList,
 } from "./schemas";
 
 export type RouteName =
@@ -20,7 +23,11 @@ export type RouteName =
   | "contact"
   | "agent-login"
   | "agent"
-  | "privacy";
+  | "privacy"
+  | "group"
+  | "tickets"
+  | "ticket"
+  | "admin";
 
 const TABLE: { name: RouteName; pattern: RegExp }[] = [
   { name: "home", pattern: /^\/$/ },
@@ -34,6 +41,10 @@ const TABLE: { name: RouteName; pattern: RegExp }[] = [
   { name: "agent-login", pattern: /^\/dai-ly\/dang-nhap\/?$/ },
   { name: "agent", pattern: /^\/dai-ly\/?$/ },
   { name: "privacy", pattern: /^\/chinh-sach-quyen-rieng-tu\/?$/ },
+  { name: "group", pattern: /^\/tour-doan\/?$/ },
+  { name: "tickets", pattern: /^\/ve-tham-quan\/?$/ },
+  { name: "ticket", pattern: /^\/ve-tham-quan\/([a-z0-9-]+)\/?$/ },
+  { name: "admin", pattern: /^\/quan-tri\/?$/ },
 ];
 
 export function matchRoute(pathname: string): { name: RouteName; slug: string | null } | null {
@@ -64,11 +75,16 @@ export type PageData =
   | { page: "agent-login"; next: string | null }
   | { page: "agent" }
   | { page: "privacy" }
+  | { page: "group" }
+  | { page: "tickets"; list: TicketList }
+  | { page: "ticket"; ticket: TicketDetail }
+  | { page: "admin"; configured: boolean }
   | { page: "not-found" }
   | { page: "maintenance" };
 
 export interface AppData {
   brand: BrandConfig;
+  settings: PublicSettings;
   siteKind: SiteKind;
   path: string;
   page: PageData;
@@ -83,6 +99,7 @@ export const BUDGETS: { value: string; min: number; max: number | null }[] = [
 ];
 
 export const paths = {
+  ticket: (slug: string) => `/ve-tham-quan/${slug}`,
   product: (slug: string) => `/tour/${slug}`,
   article: (slug: string) => `/bai-viet/${slug}`,
   destination: (slug: string) => `/diem-den/${slug}`,
