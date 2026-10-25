@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatDuration, formatMoney } from "../../shared/format";
 import type { AppData, PageData } from "../../shared/routes";
 import { paths } from "../../shared/routes";
@@ -12,6 +12,14 @@ import { pushRecent } from "../lib/recent";
 export function ProductPage({ data, page }: { data: AppData; page: Extract<PageData, { page: "product" }> }) {
   const p = page.product;
   useEffect(() => pushRecent({ slug: p.slug, name: p.name }), [p.slug, p.name]);
+  const [panelVisible, setPanelVisible] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("dat-cho");
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setPanelVisible(Boolean(e?.isIntersecting)), { threshold: 0.05 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const depositText = p.deposit.kind === "percent" ? `${p.deposit.value}% giá tour` : `${formatMoney(p.deposit.value)} mỗi khách`;
   return (
     <>
@@ -115,8 +123,12 @@ export function ProductPage({ data, page }: { data: AppData; page: Extract<PageD
       ) : null}
       <RecentTours exclude={p.slug} />
 
-      {/* Thanh đặt chỗ dưới màn hình điện thoại: nút luôn trong tầm ngón cái. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white px-4 py-3 lg:hidden">
+      {/* Thanh đặt chỗ dưới màn hình điện thoại: nút luôn trong tầm ngón cái, tự ẩn khi khung đặt chỗ đang hiện. */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white px-4 py-3 transition-transform lg:hidden ${panelVisible ? "translate-y-full" : ""}`}
+        aria-hidden={panelVisible}
+        inert={panelVisible}
+      >
         <div className="flex items-center justify-between gap-3">
           {p.fromPrice !== null ? <Price amount={p.fromPrice} vatIncluded={p.vatIncluded} compareAt={p.promotion?.compareAtPrice} prefix="Từ" /> : <span className="font-semibold">Báo giá theo đoàn</span>}
           <a href="#dat-cho" className="btn-primary shrink-0">Chọn ngày</a>
