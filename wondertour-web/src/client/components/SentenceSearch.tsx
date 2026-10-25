@@ -1,8 +1,11 @@
 // Câu tìm tour: thay ô tìm kiếm và bộ lọc bằng một câu điền chỗ trống.
 // "Tôi muốn đi [đâu đó] vào [tháng nào] cùng [ai], ngân sách [bao nhiêu]." Câu chính là bộ lọc;
 // gửi bằng GET để trang kết quả có đường dẫn riêng. Số tour khớp hỏi máy chủ web mỗi khi câu đổi.
+// Trong nước thì hỏi thêm kiểu (biển, núi, thành phố) rồi mới đến tỉnh; tháng chỉ hiện tháng, không hiện năm.
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatMoney, monthLabel } from "../../shared/format";
+import { formatMoney } from "../../shared/format";
+import { TRIP_KIND_LABEL, TRIP_KINDS, isTripKind, tripKindOf } from "../../shared/geo";
+import { isMonthOfYear, monthOfYear, monthOfYearLabel, monthsOfYear } from "../../shared/months";
 import { PARTIES, PARTY_KEYS, type PartyKey } from "../../shared/party";
 import { BUDGETS } from "../../shared/routes";
 import type { ProductFilter, ProductList } from "../../shared/schemas";
@@ -16,12 +19,13 @@ interface Choice {
   q: string;
   destination: string;
   category: string;
+  kind: string;
   month: string;
   party: PartyKey | "";
   budget: string;
 }
 
-const EMPTY: Choice = { q: "", destination: "", category: "", month: "", party: "", budget: "" };
+const EMPTY: Choice = { q: "", destination: "", category: "", kind: "", month: "", party: "", budget: "" };
 const SAVED_KEY = "wt_sentence";
 export const PARTY_KEY = "wt_party";
 const CATEGORY_LABEL: Record<string, string> = { "trong-nuoc": "trong nước", "nuoc-ngoai": "nước ngoài" };
@@ -32,7 +36,9 @@ function fromFilter(f: Partial<ProductFilter>): Choice {
     q: f.q ?? "",
     destination: f.destination ?? "",
     category: f.category && CATEGORY_LABEL[f.category] ? f.category : "",
-    month: f.month ?? "",
+    kind: f.kind ?? "",
+    // Đường dẫn cũ có YYYY-MM (chatbot): chỉ giữ tháng trong năm để câu không hiện năm.
+    month: f.month ? monthOfYear(f.month) : "",
     party: f.party ?? "",
     budget: budget?.value ?? "",
   };
@@ -47,6 +53,9 @@ function parseSaved(raw: string): Choice {
       if (typeof v === "string" && v.length <= 80) (c as Record<keyof Choice, string>)[k] = v;
     }
     if (c.party && !(c.party in PARTIES)) c.party = "";
+    if (c.kind && !isTripKind(c.kind)) c.kind = "";
+    if (c.month) c.month = monthOfYear(c.month);
+    if (c.month && !isMonthOfYear(c.month)) c.month = "";
     return c;
   } catch {
     return EMPTY;
@@ -123,8 +132,9 @@ export function SentenceSearch({
   }, [query]);
 
   const destinationName = facets.destinations.find((d) => d.slug === choice.destination)?.name ?? "";
-  const whereLabel = choice.q || destinationName || (choice.category ? CATEGORY_LABEL[choice.category] : "") || "";
-  const whenLabel = choice.month ? monthLabel(choice.month) : "";
+  const kindName = isTripKind(choice.kind) && choice.category === "trong-nuoc" ? `${TRIP_KIND_LABEL[choice.kind]} trong nước` : "";
+  const whereLabel = choice.q || destinationName || kindName || (choice.category ? CATEGORY_LABEL[choice.category] : "") || "";
+  const whenLabel = choice.month ? monthOfYearLabel(choice.month) : "";
   const whoLabel = choice.party ? PARTIES[choice.party].label : "";
   const budgetChoice = BUDGETS.find((b) => b.value === choice.budget);
   const budgetText = budgetChoice ? budgetLabel(budgetChoice) : "";
@@ -197,7 +207,7 @@ export function SentenceSearch({
                 <WherePicker choice={choice} facets={facets} onPick={set} />
               ) : open === "when" ? (
                 <Options
-                  options={[{ value: "", label: "Tháng nào cũng được" }, ...months.map((m) => ({ value: m, label: cap(monthLabel(m)) }))]}
+                  options={[{ value: "", label: "Tháng nào cũng được" }, ...monthsOfYear(months).map((m) => ({ value: m, label: cap(monthOfYearLabel(m)) }))]}
                   current={choice.month}
                   onPick={(month) => set({ month })}
                   cols={3}
@@ -282,7 +292,15 @@ function Options({
 
 function WherePicker({ choice, facets, onPick }: { choice: Choice; facets: ProductList["facets"]; onPick: (p: Partial<Choice>) => void }) {
   const [text, setText] = useState(choice.q);
-  const applyText = () => onPick({ q: text.trim(), destination: "", category: "" });
+  const applyText = () => onPick({ q: text.trim(), destination: "", category: "", kind: "" });
+  const domestic = facets.destinations.filter((d) => tripKindOf(d.name) !== null);
+  const abroad = facets.destinations.filter((d) => tripKindOf(d.name) === null);
+  const shown =
+    choice.category === "trong-nuoc"
+      ? domestic.filter((d) => !choice.kind || tripKindOf(d.name) === choice.kind)
+      : choice.category === "nuoc-ngoai"
+        ? abroad
+        : facets.destinations;
   return (
     <div className="space-y-4">
       <form
@@ -313,15 +331,33 @@ function WherePicker({ choice, facets, onPick }: { choice: Choice; facets: Produ
           { value: "cat:nuoc-ngoai", label: "Nước ngoài" },
         ]}
         current={choice.category ? `cat:${choice.category}` : choice.q || choice.destination ? "-" : ""}
-        onPick={(v) => onPick({ q: "", destination: "", category: v.replace("cat:", "") })}
+        onPick={(v) => onPick({ q: "", destination: "", kind: "", category: v.replace("cat:", "") })}
         cols={3}
       />
-      <Options
-        options={facets.destinations.map((d) => ({ value: d.slug, label: d.name }))}
-        current={choice.destination}
-        onPick={(destination) => onPick({ q: "", destination, category: "" })}
-        cols={3}
-      />
+      {choice.category === "trong-nuoc" ? (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">Đi kiểu nào?</p>
+          <Options
+            options={[{ value: "", label: "Mọi kiểu" }, ...TRIP_KINDS.map((k) => ({ value: k, label: cap(TRIP_KIND_LABEL[k]) }))]}
+            current={choice.kind}
+            onPick={(kind) => onPick({ q: "", destination: "", category: "trong-nuoc", kind })}
+            cols={3}
+          />
+        </div>
+      ) : null}
+      <div className="space-y-2">
+        <p className="text-sm font-semibold">{choice.category === "trong-nuoc" ? "Đi tỉnh nào?" : "Điểm đến"}</p>
+        {shown.length ? (
+          <Options
+            options={shown.map((d) => ({ value: d.slug, label: d.name }))}
+            current={choice.destination}
+            onPick={(destination) => onPick({ q: "", destination, category: choice.category, kind: choice.kind })}
+            cols={3}
+          />
+        ) : (
+          <p className="text-sm text-muted">Chưa có điểm đến thuộc kiểu này. Chọn “Mọi kiểu” hoặc gõ tên nơi muốn đi.</p>
+        )}
+      </div>
     </div>
   );
 }

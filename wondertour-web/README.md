@@ -113,7 +113,7 @@ Trang quản trị không đụng sản phẩm, giá, đơn hàng: những thứ
 - **Tour đoàn** (`/tour-doan`): gộp doanh nghiệp, hội nghị MICE, teambuilding, học sinh, nhóm riêng vào một cửa; mỗi lựa chọn dẫn tới tour có sẵn hoặc form đề xuất riêng.
 - **Vé tham quan** (`/ve-tham-quan`): vé khu vui chơi từ xTravelOS (`GET /tickets`, `POST /ticket-orders`), chọn ngày, số vé, thanh toán VietQR, trạng thái tiền tự cập nhật.
 
-- **Câu tìm tour** thay cho ô tìm kiếm và bộ lọc: "Tôi muốn đi [đâu đó] vào [tháng nào] cùng [ai], ngân sách [bao nhiêu]". Bấm từng chỗ trống để chọn; nút hiện ngay số tour khớp; "đi cùng ai" tự điền số khách khi đặt chỗ; web nhớ câu lần trước trong trình duyệt người xem.
+- **Câu tìm tour** thay cho ô tìm kiếm và bộ lọc: "Tôi muốn đi [đâu đó] vào [tháng nào] cùng [ai], ngân sách [bao nhiêu]". Trong nước thì hỏi thêm kiểu (biển, núi, thành phố) rồi đến tỉnh; tháng chỉ hiện "tháng 11", không hiện năm, và khớp tour đi tháng đó của mọi năm trong 24 tháng tới. Bấm từng chỗ trống để chọn; nút hiện ngay số tour khớp; "đi cùng ai" tự điền số khách khi đặt chỗ; web nhớ câu lần trước trong trình duyệt người xem.
 - Chọn nơi khởi hành ở đầu trang (nhớ cho lần sau); trang chủ ưu tiên tour đi từ đó.
 - Lưới dịch vụ bằng biểu tượng (tour trong nước, nước ngoài, đoàn MICE, teambuilding, tour học sinh, visa, vé máy bay, SIM eSIM), khai báo trong `brand/*.json`.
 - "Ưu đãi hôm nay" và "Khám phá điểm đến" vuốt ngang trên điện thoại.

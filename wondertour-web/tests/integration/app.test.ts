@@ -3,6 +3,7 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { tripKindOf } from "../../src/shared/geo";
 import { createMockXTravel } from "../../mock-xtravelos/server";
 import { render } from "../../src/client/entry-server";
 import { createApp } from "../../src/server/app";
@@ -172,6 +173,18 @@ describe("giữ chỗ và đặt chỗ", () => {
     const budget = await request(app).get("/api/products?budget=0-5000000").expect(200);
     expect(budget.body.total).toBe(2);
     await request(app).get("/api/products?party=khong-co").expect(200); // giá trị lạ bị bỏ, không lỗi
+  });
+
+  it("lọc theo kiểu chuyến đi và tháng trong năm không lộ năm, và không lỗi với giá trị lạ", async () => {
+    const { app } = makeApp();
+    const sea = await request(app).get("/api/products?kind=bien&pageSize=24").expect(200);
+    expect(sea.body.total).toBe(sea.body.items.length);
+    expect(sea.body.items.length).toBeGreaterThan(0);
+    for (const p of sea.body.items) expect(p.destinations.some((d: { name: string }) => tripKindOf(d.name) === "bien")).toBe(true);
+    const month = await request(app).get("/api/products?month=11&pageSize=24").expect(200);
+    expect(month.body.items.length).toBe(month.body.total);
+    await request(app).get("/api/products?month=13").expect(200); // tháng không hợp lệ bị bỏ, không lỗi
+    await request(app).get("/api/products?kind=khong-co").expect(200);
   });
 
   it("thiếu mã chống trùng, sai dữ liệu, gửi chéo trang đều bị chặn", async () => {

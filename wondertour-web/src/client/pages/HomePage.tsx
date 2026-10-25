@@ -42,7 +42,7 @@ export function HomePage({ data, page }: { data: AppData; page: Extract<PageData
 
       {on("serviceGrid") ? (
         <div className="wrap -mt-12 sm:-mt-16">
-          <div className="rounded-2xl bg-white p-4 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-6">
+          <div className="rounded-2xl bg-white p-3 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.25)] sm:p-4">
             <ServiceGrid
               services={settings.services.filter(
                 (s) => (on("tickets") || !s.href.startsWith("/ve-tham-quan")) && (on("groupTours") || !s.href.startsWith("/tour-doan")),

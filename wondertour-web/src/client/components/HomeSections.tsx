@@ -6,13 +6,13 @@ import { Icon, isIconName } from "../icons";
 import { TourCard } from "./TourCard";
 import { Picture } from "./ui";
 
-/** Lưới dịch vụ: 4 cột trên điện thoại, một hàng trên máy tính. */
+/** Lưới dịch vụ gọn: 4 cột trên điện thoại, một hàng trên máy tính. */
 export function ServiceGrid({ services }: { services: ServiceItem[] }) {
   const items = services.filter((s) => s.enabled);
   if (!items.length) return null;
   return (
     <nav aria-label="Dịch vụ">
-      <ul className={`grid grid-cols-4 gap-x-1 gap-y-4 ${items.length > 6 ? "lg:grid-cols-8" : "lg:grid-cols-6"}`}>
+      <ul className={`grid grid-cols-4 gap-x-2 gap-y-3 ${items.length > 6 ? "lg:grid-cols-8" : "lg:grid-cols-6"}`}>
         {items.map((s) => {
           const external = /^https?:\/\//.test(s.href);
           return (
@@ -20,10 +20,10 @@ export function ServiceGrid({ services }: { services: ServiceItem[] }) {
               <a
                 href={s.href}
                 {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="group flex min-h-11 flex-col items-center gap-1.5 rounded-lg p-1 text-center text-xs leading-tight font-semibold text-ink sm:text-sm"
+                className="group flex min-h-11 flex-col items-center gap-1 rounded-lg p-1 text-center text-[11px] leading-tight font-semibold text-ink sm:text-xs"
               >
-                <span className="flex size-12 items-center justify-center rounded-2xl bg-mist text-primary transition-colors group-hover:bg-primary group-hover:text-white sm:size-14">
-                  <Icon name={isIconName(s.icon) ? s.icon : "flag"} className="size-6 sm:size-7" />
+                <span className="flex size-10 items-center justify-center rounded-xl bg-mist text-primary transition-colors group-hover:bg-primary group-hover:text-white sm:size-11">
+                  <Icon name={isIconName(s.icon) ? s.icon : "flag"} className="size-5" />
                 </span>
                 {s.label}
                 {external ? <span className="sr-only"> (mở trang mới)</span> : null}

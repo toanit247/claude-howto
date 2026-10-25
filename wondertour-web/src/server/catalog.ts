@@ -1,4 +1,6 @@
 // Đọc sản phẩm, lịch khởi hành, bài viết từ xTravelOS qua bản tạm có hạn.
+import { tripKindOf } from "../shared/geo";
+import { isMonthOfYear, salesMonthsFor } from "../shared/months";
 import {
   ArticleDetail,
   ArticleList,
@@ -8,6 +10,7 @@ import {
   TicketDetail,
   TicketList,
   type ProductFilter,
+  type ProductSummary,
 } from "../shared/schemas";
 import type { TtlCache } from "./cache";
 import type { XTravelClient } from "./xtravel";
@@ -15,6 +18,9 @@ import type { XTravelClient } from "./xtravel";
 /** Nội dung: tối đa 60 giây (xTravelOS báo đổi thì xóa ngay). Chỗ còn: hỏi lại sau 15 giây. */
 export const CONTENT_TTL_MS = 60_000;
 export const SEATS_TTL_MS = 15_000;
+/** Lọc theo tháng trong năm hay kiểu chuyến đi: lấy tối đa 10 trang x 100 tour của mỗi tháng khớp rồi gộp. */
+const LOCAL_FILTER_PAGE_SIZE = 100;
+const LOCAL_FILTER_MAX_PAGES = 10;
 
 export class Catalog {
   constructor(
@@ -23,6 +29,7 @@ export class Catalog {
   ) {}
 
   listProducts(f: Partial<ProductFilter> & { pageSize?: number }) {
+    if (f.kind || (f.month && isMonthOfYear(f.month))) return this.listLocallyFiltered(f);
     const query = {
       q: f.q,
       destination: f.destination,
@@ -42,6 +49,48 @@ export class Catalog {
     return this.cache.wrap(key, CONTENT_TTL_MS, ["products"], () =>
       this.api.call("/products", ProductList, { query }),
     );
+  }
+
+  /**
+   * Tháng trong năm và kiểu chuyến đi không có tham số tương ứng trên xTravelOS: gọi từng tháng YYYY-MM khớp
+   * trong tầm bán, gộp, lọc theo tên điểm đến rồi cắt trang tại đây. Thứ tự: theo ngày khởi hành gần nhất khi
+   * gộp nhiều tháng; một tháng thì giữ thứ tự của xTravelOS.
+   */
+  private listLocallyFiltered(f: Partial<ProductFilter> & { pageSize?: number }) {
+    const page = f.page ?? 1;
+    const pageSize = f.pageSize ?? 12;
+    const key = `products-local:${JSON.stringify({ ...f, page, pageSize })}`;
+    return this.cache.wrap(key, CONTENT_TTL_MS, ["products"], async () => {
+      const months: (string | undefined)[] = f.month && isMonthOfYear(f.month) ? salesMonthsFor(f.month) : [f.month];
+      const batches = await Promise.all(months.map((m) => this.allPages({ ...f, kind: undefined, month: m })));
+
+      const bySlug = new Map<string, ProductSummary>();
+      for (const b of batches) for (const p of b.items) if (!bySlug.has(p.slug)) bySlug.set(p.slug, p);
+      let items = [...bySlug.values()];
+      if (f.kind) items = items.filter((p) => p.destinations.some((d) => tripKindOf(d.name) === f.kind));
+      if (batches.length > 1) {
+        const firstDate = (p: ProductSummary) => p.nextDepartures[0]?.date ?? "9999-12-31";
+        items.sort((a, b) => firstDate(a).localeCompare(firstDate(b)));
+      }
+      return {
+        facets: batches[0]?.facets ?? { destinations: [], departFrom: [], seasons: [] },
+        page,
+        pageSize,
+        total: items.length,
+        items: items.slice((page - 1) * pageSize, page * pageSize),
+      };
+    });
+  }
+
+  /** Mọi trang của một bộ lọc (tháng YYYY-MM hoặc không tháng), giới hạn để không gọi xTravelOS vô hạn. */
+  private async allPages(f: Partial<ProductFilter>): Promise<ProductList> {
+    const first = await this.listProducts({ ...f, page: 1, pageSize: LOCAL_FILTER_PAGE_SIZE });
+    const items = [...first.items];
+    const pages = Math.min(LOCAL_FILTER_MAX_PAGES, Math.ceil(first.total / LOCAL_FILTER_PAGE_SIZE));
+    for (let page = 2; page <= pages; page++) {
+      items.push(...(await this.listProducts({ ...f, page, pageSize: LOCAL_FILTER_PAGE_SIZE })).items);
+    }
+    return { ...first, items };
   }
 
   getProduct(slug: string) {

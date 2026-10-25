@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { BUDGETS, type PageData, type RouteName } from "../shared/routes";
 import { ProductFilter } from "../shared/schemas";
+import { upcomingMonths } from "../shared/months";
 import type { Catalog } from "./catalog";
 import { UpstreamError } from "./xtravel";
 
@@ -9,17 +10,6 @@ const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 export function safeNext(raw: unknown): string | null {
   return typeof raw === "string" && /^\/(?!\/)[\w\-/]*$/.test(raw) ? raw : null;
-}
-
-/** 12 tháng tới (theo giờ Việt Nam) cho ô chọn tháng khởi hành. */
-export function upcomingMonths(now = new Date()): string[] {
-  const vn = new Date(now.getTime() + 7 * 3600_000);
-  const out: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth() + i, 1));
-    out.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
-  }
-  return out;
 }
 
 export function filterFromQuery(query: URLSearchParams) {
