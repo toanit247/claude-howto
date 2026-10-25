@@ -5,6 +5,7 @@ import type { AppData, PageData } from "../../shared/routes";
 import { paths } from "../../shared/routes";
 import type { Booking, TicketDetail } from "../../shared/schemas";
 import { BookingResult } from "../components/BookingPanel";
+import { PageCover } from "../components/PageCover";
 import { Alert, Breadcrumbs, Consent, Picture } from "../components/ui";
 import { Icon, isIconName } from "../icons";
 import { api, ApiError, newIdempotencyKey } from "../lib/api";
@@ -13,12 +14,14 @@ export function GroupToursPage({ data }: { data: AppData }) {
   const options = data.settings.groupOptions.filter((o) => o.enabled);
   const { brand } = data;
   return (
-    <div className="wrap py-8">
+    <>
+      <PageCover
+        eyebrow="Tour đoàn"
+        title="Mỗi đoàn một hành trình, đúng việc đoàn cần"
+        lead="Doanh nghiệp, hội nghị, teambuilding, trường học hay nhóm riêng: mỗi đoàn một đề xuất, không bán lịch trình có sẵn."
+      />
+      <div className="wrap py-8">
       <Breadcrumbs items={[{ label: "Trang chủ", href: "/" }, { label: "Tour đoàn" }]} />
-      <h1 className="mt-3 text-3xl sm:text-4xl">Tour đoàn</h1>
-      <p className="mt-3 max-w-2xl text-lg text-muted">
-        Doanh nghiệp, hội nghị, teambuilding, trường học hay nhóm riêng: mỗi đoàn một đề xuất, không bán lịch trình có sẵn. Chọn đúng nhu cầu để chúng tôi hỏi đúng câu và gửi đề xuất trong ngày làm việc.
-      </p>
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {options.map((o) => (
           <li key={o.key}>
@@ -48,16 +51,21 @@ export function GroupToursPage({ data }: { data: AppData }) {
           <a href="/lien-he?nhu-cau=Tour đoàn" className="btn-primary mt-5 w-full sm:w-auto">Để lại số, nhận đề xuất</a>
         </section>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }
 
 export function TicketsPage({ page }: { data: AppData; page: Extract<PageData, { page: "tickets" }> }) {
   return (
+    <>
+    <PageCover
+      eyebrow="Vé tham quan"
+      title="Vé khu vui chơi, chọn ngày, nhận mã ngay"
+      lead="Vé điện tử, thanh toán VietQR, nhận mã ngay khi tiền về. Giá hiện đủ số, ghi rõ vé người lớn và trẻ em."
+    />
     <div className="wrap py-8">
       <Breadcrumbs items={[{ label: "Trang chủ", href: "/" }, { label: "Vé tham quan" }]} />
-      <h1 className="mt-3 text-3xl sm:text-4xl">Vé tham quan khu vui chơi</h1>
-      <p className="mt-2 max-w-2xl text-muted">Vé điện tử, chọn ngày, thanh toán VietQR, nhận mã ngay khi tiền về. Giá hiện đủ số, ghi rõ vé người lớn và trẻ em.</p>
       {page.list.items.length === 0 ? (
         <p className="mt-8 text-muted">Chưa có vé đang bán. <a href="/lien-he?nhu-cau=Vé tham quan" className="text-primary underline">Để lại yêu cầu</a>, chúng tôi báo khi có.</p>
       ) : (
@@ -83,6 +91,7 @@ export function TicketsPage({ page }: { data: AppData; page: Extract<PageData, {
         </ul>
       )}
     </div>
+    </>
   );
 }
 

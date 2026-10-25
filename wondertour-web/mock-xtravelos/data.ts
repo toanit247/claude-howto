@@ -233,7 +233,7 @@ export const PRODUCTS: MockProduct[] = [
   },
 ];
 
-export const ARTICLES = [
+export const ARTICLES_SEED = [
   {
     slug: "kinh-nghiem-ha-giang-mua-tam-giac-mach",
     title: "Kinh nghiệm đi Hà Giang mùa tam giác mạch",
@@ -276,6 +276,7 @@ export const ARTICLES = [
   },
 ] as const;
 
+
 // Nhân viên xTravelOS; vai trò đúng tên đang dùng trong xTravelOS. Chỉ để chạy thử.
 export const STAFF = [
   { username: "toan", password: "matkhau123", name: "Dương Hữu Toản", role: "CEO" },
@@ -301,6 +302,62 @@ export interface MockTicket {
   highlights: string[];
   terms: string;
 }
+
+// Bài mẫu để chạy thử web. Bản thật do đội Marketing soạn và duyệt trong xTravelOS.
+export const ARTICLE_DRAFTS = [
+  {
+    slug: "ba-na-hills-mot-ngay-khong-xep-hang",
+    title: "Bà Nà Hills một ngày: lịch đi để ít đứng xếp hàng",
+    excerpt: "Lên cáp treo sớm, ăn trưa muộn, và để Cầu Vàng cho lúc ánh sáng đẹp nhất. Lịch một ngày từ người đã đưa nhiều đoàn lên núi.",
+    author: "Phòng Điều hành",
+    daysAgo: 4,
+    productSlug: null as string | null,
+    blocks: [
+      { type: "paragraph", text: "Bà Nà ngày cuối tuần đông hơn người ta tưởng. Phần lớn chuyện xếp hàng không đến từ khu vui chơi, mà từ việc cả đoàn cùng lên cáp treo một lúc." },
+      { type: "heading", text: "Sáng: lên trước khi đoàn khác tới" },
+      { type: "paragraph", text: "Khu vực mở cửa lúc 7 giờ 30. Nửa giờ đầu là lúc lên cáp ít người nhất. Với nhóm có trẻ nhỏ, đó cũng là lúc các bé còn đủ sức đi hết làng Pháp." },
+      { type: "heading", text: "Trưa: ăn muộn, nhường giờ đông" },
+      { type: "paragraph", text: "Nhà hàng đông nhất từ 11 giờ 30 đến 13 giờ. Ăn lúc 13 giờ 30 thì bàn trống, đồ ăn còn nóng, và sau đó là giờ vắng để chụp ảnh ở Cầu Vàng." },
+      { type: "heading", text: "Chiều: đợi ánh sáng" },
+      { type: "list", items: ["Cầu Vàng đẹp nhất trong nắng xế, khoảng 16 giờ đến 17 giờ 30", "Mang áo khoác mỏng: trên núi thường mát hơn dưới chân nhiều", "Đặt vé điện tử trước để quét mã ở cổng, khỏi đứng quầy"] },
+      { type: "paragraph", text: "Đi cùng đoàn thì nhắn trước cho điều hành số người và giờ muốn lên cáp. Chúng tôi sắp đoàn vào các khung giờ vắng hơn." },
+    ],
+  },
+  {
+    slug: "lan-ha-du-thuyen-mot-ngay",
+    title: "Vịnh Lan Hạ một ngày: đi thuyền gỗ, không đi đông",
+    excerpt: "Vì sao chúng tôi chọn tàu nhỏ cho đoàn và cặp đôi, và vì sao một ngày trên vịnh thường được nhớ lâu hơn ta nghĩ.",
+    author: "Phòng Sản phẩm",
+    daysAgo: 9,
+    productSlug: "cat-ba-2n1d-teambuilding",
+    blocks: [
+      { type: "paragraph", text: "Vịnh Lan Hạ được nhắc tới rất nhiều, nhưng không phải tàu nào cũng đưa khách đến những góc đẹp nhất. Tàu lớn đông người thường chỉ vòng quanh cảng." },
+      { type: "heading", text: "Vì sao chọn tàu gỗ nhỏ" },
+      { type: "paragraph", text: "Tàu ít khách đi chậm hơn và vào được những hang, đầm nhỏ mà tàu lớn không tới. Với cặp đôi, đó là khoảng yên tĩnh. Với đoàn công ty, đó là cách chia nhóm dễ hơn khi chèo kayak." },
+      { type: "heading", text: "Một ngày trên vịnh" },
+      { type: "list", items: ["Buổi sáng: lên tàu, ăn sáng nhẹ trên boong khi tàu rời cảng", "Buổi trưa: hải sản tươi, ăn xong nghỉ trong hang nếu thời tiết cho phép", "Buổi chiều: chèo kayak hoặc tắm biển, rồi về bến khi đèn vịnh bắt đầu sáng"] },
+      { type: "paragraph", text: "Mang theo kem chống nắng và túi chống nước cho điện thoại. Thời tiết xấu thì tàu không ra khơi; chúng tôi báo trước để anh/chị đổi ngày, không để khách đứng bến chờ." },
+    ],
+  },
+  {
+    slug: "doan-120-nguoi-teambuilding-30-ngay",
+    title: "Đưa đoàn 120 người đi teambuilding: chuẩn bị trước 30 ngày",
+    excerpt: "Danh sách nhóm, xe, phòng và kịch bản gala được chốt từ sớm ra sao. Một đoàn lớn chạy được là nhờ việc làm từ tuần thứ tư trước ngày đi.",
+    author: "Phòng Điều hành",
+    daysAgo: 14,
+    productSlug: "cat-ba-2n1d-teambuilding",
+    blocks: [
+      { type: "paragraph", text: "Teambuilding cho 120 người nghe thì đơn giản, làm thì nhiều việc. Điều quyết định một chuyến đi vui hay không thường nằm ở những việc làm từ một tháng trước." },
+      { type: "heading", text: "30 ngày trước: chốt số người và trưởng nhóm" },
+      { type: "paragraph", text: "Mỗi nhóm 8 đến 10 người cần một trưởng nhóm có số điện thoại. Trưởng nhóm nhận thông báo của điều hành, không phải người chịu việc phát sinh của cả đoàn." },
+      { type: "heading", text: "21 ngày trước: xe và phòng" },
+      { type: "paragraph", text: "Xe chia theo nhóm để lên xuống nhanh. Phòng sắp theo đúng danh sách nhóm, để buổi tối không ai phải tìm người quen trong sảnh." },
+      { type: "heading", text: "7 ngày trước: kịch bản gala" },
+      { type: "list", items: ["Chốt MC, khung giờ và thứ tự tiết mục", "Gửi danh sách món ăn và món kiêng về bếp", "Kiểm âm thanh, ánh sáng tại địa điểm ít nhất một lần"] },
+      { type: "paragraph", text: "Chuyến đi đáng nhớ không phải vì mọi thứ hoàn hảo, mà vì khi có chuyện, đoàn biết ai xử lý và xử lý nhanh." },
+    ],
+  },
+];
 
 export const TICKETS: MockTicket[] = [
   {
@@ -343,3 +400,5 @@ export const TICKETS: MockTicket[] = [
     terms: "Hủy trước 48 giờ hoàn 100%. Thời tiết xấu cảng cấm biển thì đổi ngày hoặc hoàn tiền.",
   },
 ];
+
+export const ARTICLES = [...ARTICLES_SEED, ...ARTICLE_DRAFTS] as const;

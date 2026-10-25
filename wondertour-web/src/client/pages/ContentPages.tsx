@@ -2,14 +2,16 @@ import { formatDateOfInstant } from "../../shared/format";
 import type { AppData, PageData } from "../../shared/routes";
 import { paths } from "../../shared/routes";
 import { TourCard } from "../components/TourCard";
+import { PageCover } from "../components/PageCover";
 import { Breadcrumbs, Picture } from "../components/ui";
 import { Pagination } from "./ToursPage";
 
 export function ArticlesPage({ page }: { data: AppData; page: Extract<PageData, { page: "articles" }> }) {
   return (
+    <>
+    <PageCover eyebrow="Cẩm nang" title="Đi đâu, khi nào, và làm sao để chuyến đi trọn vẹn" lead="Kinh nghiệm từ những đoàn WonderTour đã đi: lịch trình, mùa đẹp, và những việc nên chuẩn bị trước." />
     <div className="wrap py-8">
       <Breadcrumbs items={[{ label: "Trang chủ", href: "/" }, { label: "Cẩm nang" }]} />
-      <h1 className="mt-3 text-3xl sm:text-4xl">Cẩm nang du lịch</h1>
       <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {page.list.items.map((a, i) => (
           <article key={a.slug} className="relative">
@@ -24,6 +26,7 @@ export function ArticlesPage({ page }: { data: AppData; page: Extract<PageData, 
       </div>
       <Pagination list={page.list} basePath="/bai-viet" query={{}} />
     </div>
+    </>
   );
 }
 

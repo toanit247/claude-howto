@@ -2,6 +2,9 @@
 // Có khóa chỗ (hai người giữ chỗ cuối thì một người nhận 409), chống gửi trùng bằng Idempotency-Key,
 // mã VietQR, hàng chờ duyệt cho đại lý/liên minh, và đầu /__mock để giả lập ngân hàng báo tiền về.
 import { randomBytes } from "node:crypto";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import express, { type Request, type Response } from "express";
 import QRCode from "qrcode";
 import { z } from "zod";
@@ -36,6 +39,8 @@ interface BookingRec {
   rejectionReason: string | null;
   payment: S.PaymentInstruction | null;
 }
+
+const MEDIA_DIR = join(dirname(fileURLToPath(import.meta.url)), "media");
 
 export interface MockOptions {
   apiKey: string;
@@ -458,6 +463,12 @@ export function createMockXTravel(opts: MockOptions) {
   v1.get("/media/:id", (req, res) => {
     const id = req.params.id;
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return err(res, 404, "Không có ảnh.");
+    // Có ảnh thật đặt trong mock-xtravelos/media/<id>.(webp|jpg|png) thì trả ảnh đó, không thì ảnh minh họa.
+    const real = ["webp", "jpg", "png"].map((ext) => join(MEDIA_DIR, `${id}.${ext}`)).find((p) => existsSync(p));
+    if (real) {
+      const type = real.endsWith(".webp") ? "image/webp" : real.endsWith(".png") ? "image/png" : "image/jpeg";
+      return res.type(type).sendFile(real);
+    }
     const hue = [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
     const label = id.replace(/-(cover|g\d)$/, "").replace(/-/g, " ");
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue} 55% 42%)"/><stop offset="1" stop-color="hsl(${(hue + 50) % 360} 60% 70%)"/></linearGradient></defs><rect width="1600" height="1000" fill="url(#g)"/><path d="M0 760 L380 420 L640 640 L980 300 L1600 820 L1600 1000 L0 1000Z" fill="rgba(255,255,255,.18)"/><text x="80" y="920" font-family="sans-serif" font-size="56" fill="rgba(255,255,255,.85)">${label.replace(/[<&>]/g, "")}</text></svg>`;
