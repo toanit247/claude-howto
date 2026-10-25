@@ -317,12 +317,12 @@ describe("quản trị web", () => {
     await request(app).post("/api/admin/login").send({ username: "sale01", password: "matkhau123" }).expect(403);
     const agent = request.agent(app);
     const login = await agent.post("/api/admin/login").send({ username: "marketing01", password: "matkhau123" }).expect(200);
-    expect(login.body).toMatchObject({ name: "Nguyễn Minh Anh", role: "marketing", source: "xtravelos" });
+    expect(login.body).toMatchObject({ name: "Nguyễn Minh Anh", role: "Marketing", source: "xtravelos" });
     const cookies = ([] as string[]).concat(login.headers["set-cookie"] ?? []);
     expect(cookies.some((c) => c.startsWith("wt_admin=") && /HttpOnly/i.test(c) && /SameSite=Strict/i.test(c))).toBe(true);
     expect(cookies.join(";")).not.toContain("matkhau123");
     const me = await agent.get("/api/admin/me").expect(200);
-    expect(me.body.role).toBe("marketing");
+    expect(me.body.role).toBe("Marketing");
   });
 
   it("cấu hình cất ở xTravelOS: lưu từ web, đọc lại sau khi khởi động lại web; tắt vé thì trang vé 404", async () => {

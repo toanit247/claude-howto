@@ -24,9 +24,9 @@ Mở `http://localhost:3000`. Tài khoản thử của bản giả lập:
 
 | Tài khoản | Mật khẩu | Luồng |
 | --- | --- | --- |
-| `toan` | `matkhau123` | Nhân viên xTravelOS vai trò ceo, vào được /quan-tri |
-| `marketing01` | `matkhau123` | Nhân viên vai trò marketing, vào được /quan-tri |
-| `sale01` | `matkhau123` | Nhân viên vai trò sales, bị chặn ở /quan-tri |
+| `toan` | `matkhau123` | Nhân viên xTravelOS vai trò CEO, vào được /quan-tri |
+| `marketing01` | `matkhau123` | Nhân viên vai trò Marketing, vào được /quan-tri |
+| `sale01` | `matkhau123` | Nhân viên vai trò Sale, bị chặn ở /quan-tri |
 | `daily01` | `matkhau123` | Đại lý, cấp 2 (web công ty) |
 | `lienminh01` | `matkhau123` | Doanh nghiệp liên minh (đặt `SITE_KIND=alliance`) |
 
@@ -97,7 +97,7 @@ Máy chủ web không lưu hội thoại; nhật ký không ghi nội dung khác
 
 ## Quản trị web (/quan-tri)
 
-Đăng nhập bằng **tài khoản nhân viên xTravelOS** (web gọi `POST /public/v1/staff/login`); chỉ vai trò trong `ADMIN_ROLES` (mặc định `admin,manager,ceo,marketing`) được vào. Nhân viên nghỉ việc thì khóa ở xTravelOS là hết quyền trên web. Tài khoản dự phòng trong biến môi trường (`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, tạo bằng `node scripts/hash-password.mjs`) chỉ dùng được khi xTravelOS chưa có đầu API này hoặc đang tắt; để trống nếu không cần.
+Đăng nhập bằng **tài khoản nhân viên xTravelOS** (web gọi `POST /public/v1/staff/login`); chỉ vai trò trong `ADMIN_ROLES` (viết đúng tên vai trò trong xTravelOS, mặc định `Quản trị,Quản lý,CEO,Marketing`) được vào. Nhân viên nghỉ việc thì khóa ở xTravelOS là hết quyền trên web. Tài khoản dự phòng trong biến môi trường (`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, tạo bằng `node scripts/hash-password.mjs`) chỉ dùng được khi xTravelOS chưa có đầu API này hoặc đang tắt; để trống nếu không cần.
 
 Trang quản trị cho bật tắt từng khối (câu tìm tour, ưu đãi, bảng khởi hành, vé tham quan, tour đoàn, trợ lý AI…), sửa lưới dịch vụ, lựa chọn trong trang Tour đoàn, hotline, email, Zalo, tên và câu chào của trợ lý.
 

@@ -199,11 +199,11 @@ export const AgentLoginResult = z.object({
   agent: AgentProfile,
 });
 
-/** Nhân viên xTravelOS đăng nhập để sửa web. role là mã vai trò (admin, manager, ceo, marketing, sales…). */
+/** Nhân viên xTravelOS đăng nhập để sửa web. role là tên vai trò đúng như trong xTravelOS ("Quản trị", "CEO", "Marketing"…). */
 export const StaffLoginResult = z.object({
   sessionToken: z.string().min(16).max(512),
   expiresAt: isoInstant,
-  staff: z.object({ name: z.string().max(100), role: z.string().regex(/^[a-z][a-z0-9_-]{1,31}$/) }),
+  staff: z.object({ name: z.string().max(100), role: z.string().trim().min(1).max(32) }),
 });
 export type StaffLoginResult = z.infer<typeof StaffLoginResult>;
 

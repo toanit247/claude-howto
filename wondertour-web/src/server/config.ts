@@ -30,8 +30,8 @@ const Env = z.object({
   // Cấu hình web cất ở đâu: "xtravelos" (GET/PUT /public/v1/site-settings) hoặc "file" (tệp JSON, Railway cần Volume)
   SETTINGS_SOURCE: z.enum(["file", "xtravelos"]).default("file"),
   SETTINGS_FILE: z.string().default("data/site-settings.json"),
-  // Vai trò xTravelOS được vào trang quản trị web, cách nhau bằng dấu phẩy
-  ADMIN_ROLES: z.string().default("admin,manager,ceo,marketing"),
+  // Vai trò xTravelOS được vào trang quản trị web, viết đúng như trong xTravelOS, cách nhau bằng dấu phẩy
+  ADMIN_ROLES: z.string().default("Quản trị,Quản lý,CEO,Marketing"),
   // Trợ lý AI: có ANTHROPIC_API_KEY thì gọi Claude; không có thì chạy chế độ gợi ý cơ bản.
   ANTHROPIC_API_KEY: z.string().optional(),
   AI_MODEL: z.string().default("claude-opus-5-5"),
@@ -96,7 +96,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, root = process.
     cookieSecure: e.COOKIE_SECURE,
     trustProxy: e.TRUST_PROXY,
     admin: e.ADMIN_USERNAME && e.ADMIN_PASSWORD_HASH ? { username: e.ADMIN_USERNAME, passwordHash: e.ADMIN_PASSWORD_HASH } : null,
-    adminRoles: e.ADMIN_ROLES.split(",").map((r) => r.trim()).filter(Boolean),
+    adminRoles: e.ADMIN_ROLES.split(",").map((r) => r.trim().toLowerCase()).filter(Boolean),
     settingsSource: e.SETTINGS_SOURCE,
     settingsFile: resolve(root, e.SETTINGS_FILE),
     ai: { apiKey: e.ANTHROPIC_API_KEY ?? null, model: e.AI_MODEL, skillFile: resolve(root, "ai/skills/tu-van-tour/SKILL.md") },

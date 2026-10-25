@@ -84,7 +84,7 @@ export function createMockXTravel(opts: MockOptions) {
   const staffSessions = new Map<string, (typeof STAFF)[number]>();
   // Cấu hình web do nhân viên lưu; null nghĩa là chưa lưu gì (web dùng mặc định).
   let siteSettings: unknown = null;
-  const SETTINGS_ROLES = new Set(["admin", "manager", "ceo", "marketing"]);
+  const SETTINGS_ROLES = new Set(["Quản trị", "Quản lý", "CEO", "Marketing"]);
   const idem = new Map<string, Promise<{ status: number; body: unknown }>>();
   let leads = 0;
 

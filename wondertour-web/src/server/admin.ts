@@ -97,7 +97,8 @@ export function adminRouter(deps: {
   async function loginAtXTravel(username: string, password: string): Promise<AdminSession | null> {
     try {
       const result = await api.call("/staff/login", StaffLoginResult, { method: "POST", body: { username, password }, idempotencyKey: randomBytes(16).toString("hex") });
-      if (!config.adminRoles.includes(result.staff.role)) {
+      // So không phân biệt hoa thường để "CEO" và "Ceo" đều khớp; dấu tiếng Việt phải đúng.
+      if (!config.adminRoles.includes(result.staff.role.toLowerCase())) {
         log.warn("đăng nhập quản trị: vai trò không được phép", { role: result.staff.role });
         throw new HttpError(403, "Tài khoản của bạn chưa được phân quyền sửa web. Nhờ quản trị xTravelOS cấp quyền.");
       }
@@ -111,7 +112,7 @@ export function adminRouter(deps: {
 
   function loginFallback(username: string, password: string): AdminSession | null {
     if (!config.admin || username !== config.admin.username || !verifyPassword(password, config.admin.passwordHash)) return null;
-    return { username, name: username, role: "admin", source: "env", token: null };
+    return { username, name: username, role: "Quản trị", source: "env", token: null };
   }
 
   r.post(
