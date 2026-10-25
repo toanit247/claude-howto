@@ -103,10 +103,9 @@ test("trợ lý AI: mở khung, bấm câu gợi ý, nhận gợi ý có link to
 });
 
 test("quản trị: đăng nhập, tắt Ưu đãi hôm nay, trang chủ ẩn mục đó", async ({ page }) => {
-  test.skip(!process.env.E2E_ADMIN_HASH, "Cần E2E_ADMIN_HASH để thử trang quản trị");
   await page.goto("/quan-tri");
-  await page.getByLabel("Tên đăng nhập").fill("admin");
-  await page.getByLabel("Mật khẩu").fill("mat-khau-quan-tri-123");
+  await page.getByLabel("Tên đăng nhập").fill("toan");
+  await page.getByLabel("Mật khẩu").fill("matkhau123");
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await expect(page.getByRole("heading", { name: "Khối hiển thị" })).toBeVisible();
   const deals = page.getByRole("switch", { name: "Mục Ưu đãi hôm nay" });

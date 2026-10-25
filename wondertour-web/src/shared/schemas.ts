@@ -199,6 +199,14 @@ export const AgentLoginResult = z.object({
   agent: AgentProfile,
 });
 
+/** Nhân viên xTravelOS đăng nhập để sửa web. role là mã vai trò (admin, manager, ceo, marketing, sales…). */
+export const StaffLoginResult = z.object({
+  sessionToken: z.string().min(16).max(512),
+  expiresAt: isoInstant,
+  staff: z.object({ name: z.string().max(100), role: z.string().regex(/^[a-z][a-z0-9_-]{1,31}$/) }),
+});
+export type StaffLoginResult = z.infer<typeof StaffLoginResult>;
+
 export const AgentStatement = z.object({
   agent: AgentProfile,
   holds: z.array(
@@ -268,7 +276,9 @@ export const WebhookEvent = z.object({
     "article.deleted",
     "ticket.updated",
     "ticket.deleted",
+    "site-settings.updated",
   ]),
+  // Sự kiện cấu hình web không gắn sản phẩm nào: slug để "web".
   slug,
 });
 export type WebhookEvent = z.infer<typeof WebhookEvent>;

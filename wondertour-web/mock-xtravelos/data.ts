@@ -276,6 +276,13 @@ export const ARTICLES = [
   },
 ] as const;
 
+// Nhân viên xTravelOS (vai trò là mã: admin, manager, ceo, marketing, sales…). Chỉ để chạy thử.
+export const STAFF = [
+  { username: "toan", password: "matkhau123", name: "Dương Hữu Toản", role: "ceo" },
+  { username: "marketing01", password: "matkhau123", name: "Nguyễn Minh Anh", role: "marketing" },
+  { username: "sale01", password: "matkhau123", name: "Trần Văn Sơn", role: "sales" },
+];
+
 export const AGENTS = [
   { username: "daily01", password: "matkhau123", profile: { name: "Nguyễn Thu Hà", company: "Đại lý Thu Hà Travel", flow: "agent" as const, tier: "2" } },
   { username: "lienminh01", password: "matkhau123", profile: { name: "Trần Minh Quân", company: "Công ty Du lịch Sao Việt", flow: "alliance" as const, tier: null } },

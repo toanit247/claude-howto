@@ -31,19 +31,19 @@ describe("cấu hình web", () => {
     expect(s.groupOptions).toHaveLength(5);
     expect(s.chatbot.greeting).toContain("WonderTour");
   });
-  it("lưu rồi đọc lại; khối mới chưa có trong tệp cũ thì bật", () => {
+  it("lưu rồi đọc lại; khối mới chưa có trong tệp cũ thì bật", async () => {
     const file = join(dir, "a", "site.json");
-    const store = new SettingsStore(file, brand);
-    const saved = store.save({ ...store.get(), features: { tickets: false } });
+    const store = new SettingsStore("file", file, brand);
+    const saved = await store.save({ ...store.peek(), features: { tickets: false } }, null);
     expect(saved.updatedAt).toBeDefined();
-    const again = new SettingsStore(file, brand);
-    expect(featureOn(again.get(), "tickets")).toBe(false);
-    expect(featureOn(again.get(), "chatbot")).toBe(true);
+    const again = new SettingsStore("file", file, brand);
+    expect(featureOn(again.peek(), "tickets")).toBe(false);
+    expect(featureOn(again.peek(), "chatbot")).toBe(true);
   });
   it("tệp hỏng thì về mặc định, không ném lỗi", () => {
     const file = join(dir, "b.json");
     writeFileSync(file, "{khong phai json");
-    expect(featureOn(new SettingsStore(file, brand).get(), "deals")).toBe(true);
+    expect(featureOn(new SettingsStore("file", file, brand).peek(), "deals")).toBe(true);
     expect(() => SiteSettings.parse({ services: [{ label: "", icon: "x", href: "/" }] })).toThrow();
   });
 });

@@ -24,6 +24,9 @@ Mở `http://localhost:3000`. Tài khoản thử của bản giả lập:
 
 | Tài khoản | Mật khẩu | Luồng |
 | --- | --- | --- |
+| `toan` | `matkhau123` | Nhân viên xTravelOS vai trò ceo, vào được /quan-tri |
+| `marketing01` | `matkhau123` | Nhân viên vai trò marketing, vào được /quan-tri |
+| `sale01` | `matkhau123` | Nhân viên vai trò sales, bị chặn ở /quan-tri |
 | `daily01` | `matkhau123` | Đại lý, cấp 2 (web công ty) |
 | `lienminh01` | `matkhau123` | Doanh nghiệp liên minh (đặt `SITE_KIND=alliance`) |
 
@@ -94,7 +97,14 @@ Máy chủ web không lưu hội thoại; nhật ký không ghi nội dung khác
 
 ## Quản trị web (/quan-tri)
 
-Một tài khoản quản trị đặt trong biến môi trường: `ADMIN_USERNAME` và `ADMIN_PASSWORD_HASH` (tạo bằng `node scripts/hash-password.mjs`). Trang quản trị cho bật tắt từng khối (câu tìm tour, ưu đãi, bảng khởi hành, vé tham quan, tour đoàn, trợ lý AI…), sửa lưới dịch vụ, lựa chọn trong trang Tour đoàn, hotline, email, Zalo, tên và câu chào của trợ lý. Cấu hình lưu ở `SETTINGS_FILE` (mặc định `data/site-settings.json`); trên Railway gắn Volume vào `data/` để không mất khi triển khai lại.
+Đăng nhập bằng **tài khoản nhân viên xTravelOS** (web gọi `POST /public/v1/staff/login`); chỉ vai trò trong `ADMIN_ROLES` (mặc định `admin,manager,ceo,marketing`) được vào. Nhân viên nghỉ việc thì khóa ở xTravelOS là hết quyền trên web. Tài khoản dự phòng trong biến môi trường (`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, tạo bằng `node scripts/hash-password.mjs`) chỉ dùng được khi xTravelOS chưa có đầu API này hoặc đang tắt; để trống nếu không cần.
+
+Trang quản trị cho bật tắt từng khối (câu tìm tour, ưu đãi, bảng khởi hành, vé tham quan, tour đoàn, trợ lý AI…), sửa lưới dịch vụ, lựa chọn trong trang Tour đoàn, hotline, email, Zalo, tên và câu chào của trợ lý.
+
+Cấu hình cất ở đâu do `SETTINGS_SOURCE` quyết:
+
+- `xtravelos` (khuyên dùng): `GET/PUT /public/v1/site-settings` trên xTravelOS, web chỉ giữ bản tạm 60 giây; xTravelOS báo `site-settings.updated` qua webhook thì web tải lại ngay. Không cần Volume, khởi động lại web không mất gì, và sau này sửa ngay trong ERP cũng được.
+- `file`: tệp JSON `SETTINGS_FILE` (mặc định `data/site-settings.json`); trên Railway gắn Volume vào `data/`.
 
 Trang quản trị không đụng sản phẩm, giá, đơn hàng: những thứ đó ở xTravelOS.
 

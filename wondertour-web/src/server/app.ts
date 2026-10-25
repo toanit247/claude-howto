@@ -35,8 +35,8 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   // Mất kết nối xTravelOS thì xóa sạch bản tạm: không bán bằng dữ liệu cũ.
   const api = new XTravelClient(config.xtravel, () => cache.clear());
   const catalog = new Catalog(api, cache);
-  const settings = new SettingsStore(config.settingsFile, config.brand);
-  const on = (k: FeatureKey) => featureOn(settings.get(), k);
+  const settings = new SettingsStore(config.settingsSource, config.settingsFile, config.brand, api);
+  const on = (k: FeatureKey) => featureOn(settings.peek(), k);
   const isProd = config.nodeEnv === "production";
 
   const app = express();
@@ -117,6 +117,12 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
       res.status(422).json({ detail: "Sự kiện không hợp lệ." });
       return;
     }
+    if (event.event === "site-settings.updated") {
+      settings.invalidate();
+      log.info("webhook", { event: event.event, slug: event.slug, purged: 0 });
+      res.status(204).end();
+      return;
+    }
     const tags = event.event.startsWith("article")
       ? [`article:${event.slug}`, "articles", "sitemap"]
       : event.event.startsWith("ticket")
@@ -174,7 +180,7 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   );
 
   app.use(cookieParser(config.cookieSecret));
-  app.use("/api/admin", express.json({ limit: "200kb" }), adminRouter({ config, store: settings, onSettingsChange: () => cache.purgeTag("sitemap") }));
+  app.use("/api/admin", express.json({ limit: "200kb" }), adminRouter({ config, api, store: settings, onSettingsChange: () => cache.purgeTag("sitemap") }));
   app.use(
     "/api",
     express.json({ limit: "100kb" }),
@@ -184,12 +190,12 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
       catalog,
       cache,
       featureOn: on,
-      chatDeps: { config, brand: config.brand, catalog, settings: () => settings.get() },
+      chatDeps: { config, brand: config.brand, catalog, settings: () => settings.peek() },
     }),
   );
 
   const renderPage = async (url: string, status: number, page: PageData, path: string, priv: boolean) => {
-    const data: AppData = { brand: config.brand, settings: publicSettings(settings.get()), siteKind: config.siteKind, path, page };
+    const data: AppData = { brand: config.brand, settings: publicSettings(settings.peek()), siteKind: config.siteKind, path, page };
     const [template, appHtml] = await Promise.all([renderer.template(url), renderer.render(data)]);
     return { status, html: htmlDocument(template, buildHead(data, config), appHtml, data), priv };
   };
@@ -219,7 +225,8 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
       } else {
         try {
           const { status, page } = await loadPage(route, new URLSearchParams(req.query as Record<string, string>), catalog, {
-            adminConfigured: config.admin !== null,
+            // Trang quản trị luôn mở: đăng nhập bằng tài khoản xTravelOS; tài khoản dự phòng chỉ là thêm.
+            adminConfigured: true,
           });
           const priv = isAlliance || ["agent", "agent-login", "lookup", "admin"].includes(route.name);
           out = await renderPage(req.originalUrl, status, page, req.path, priv);
@@ -266,5 +273,7 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
   app.use(onError);
 
   void readAdmin;
+  // Với nguồn xTravelOS, tải cấu hình ngay khi khởi động (không chặn nếu xTravelOS chưa lên).
+  if (config.settingsSource === "xtravelos") void settings.refresh();
   return { app, cache, api, settings };
 }

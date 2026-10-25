@@ -30,7 +30,7 @@ export class UpstreamError extends Error {
 export class UpstreamUnavailable extends Error {}
 
 export interface CallOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   query?: Record<string, string | number | undefined>;
   body?: unknown;
   session?: string | undefined;

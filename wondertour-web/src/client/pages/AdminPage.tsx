@@ -18,17 +18,7 @@ export function AdminPage({ page }: { data: AppData; page: Extract<PageData, { p
       .catch(() => setChecked(true));
   }, []);
 
-  if (!page.configured) {
-    return (
-      <div className="wrap max-w-xl py-12">
-        <h1 className="text-3xl">Quản trị web</h1>
-        <Alert tone="info">
-          <p className="font-semibold">Chưa có tài khoản quản trị.</p>
-          <p>Trên máy chủ web, chạy <code>node scripts/hash-password.mjs</code> để tạo chuỗi băm, rồi đặt biến môi trường <code>ADMIN_USERNAME</code> và <code>ADMIN_PASSWORD_HASH</code>, khởi động lại web.</p>
-        </Alert>
-      </div>
-    );
-  }
+  void page;
   if (!checked) return <div className="wrap py-12 text-muted">Đang kiểm tra phiên…</div>;
   if (!user) return <LoginForm onDone={setUser} />;
   return <SettingsForm user={user} onLogout={() => setUser(null)} />;
@@ -55,7 +45,7 @@ function LoginForm({ onDone }: { onDone: (u: string) => void }) {
   return (
     <div className="wrap max-w-md py-12">
       <h1 className="text-3xl">Quản trị web</h1>
-      <p className="mt-2 text-muted">Dành cho người quản lý web. Khách và đại lý không dùng trang này.</p>
+      <p className="mt-2 text-muted">Đăng nhập bằng tài khoản nhân viên xTravelOS đã được cấp quyền sửa web. Khách và đại lý không dùng trang này.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div>
           <label htmlFor="ad-user" className="label">Tên đăng nhập</label>

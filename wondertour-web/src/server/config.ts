@@ -27,8 +27,11 @@ const Env = z.object({
   // Tài khoản quản trị web (trang /quan-tri). Băm mật khẩu: node scripts/hash-password.mjs
   ADMIN_USERNAME: z.string().trim().min(3).max(64).optional(),
   ADMIN_PASSWORD_HASH: z.string().regex(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{128}$/).optional(),
-  // Tệp lưu cấu hình web (Railway: đặt trong thư mục có Volume)
+  // Cấu hình web cất ở đâu: "xtravelos" (GET/PUT /public/v1/site-settings) hoặc "file" (tệp JSON, Railway cần Volume)
+  SETTINGS_SOURCE: z.enum(["file", "xtravelos"]).default("file"),
   SETTINGS_FILE: z.string().default("data/site-settings.json"),
+  // Vai trò xTravelOS được vào trang quản trị web, cách nhau bằng dấu phẩy
+  ADMIN_ROLES: z.string().default("admin,manager,ceo,marketing"),
   // Trợ lý AI: có ANTHROPIC_API_KEY thì gọi Claude; không có thì chạy chế độ gợi ý cơ bản.
   ANTHROPIC_API_KEY: z.string().optional(),
   AI_MODEL: z.string().default("claude-opus-5-5"),
@@ -48,6 +51,8 @@ export interface AppConfig {
   cookieSecure: boolean;
   trustProxy: number;
   admin: { username: string; passwordHash: string } | null;
+  adminRoles: string[];
+  settingsSource: "file" | "xtravelos";
   settingsFile: string;
   ai: { apiKey: string | null; model: string; skillFile: string };
 }
@@ -91,6 +96,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, root = process.
     cookieSecure: e.COOKIE_SECURE,
     trustProxy: e.TRUST_PROXY,
     admin: e.ADMIN_USERNAME && e.ADMIN_PASSWORD_HASH ? { username: e.ADMIN_USERNAME, passwordHash: e.ADMIN_PASSWORD_HASH } : null,
+    adminRoles: e.ADMIN_ROLES.split(",").map((r) => r.trim()).filter(Boolean),
+    settingsSource: e.SETTINGS_SOURCE,
     settingsFile: resolve(root, e.SETTINGS_FILE),
     ai: { apiKey: e.ANTHROPIC_API_KEY ?? null, model: e.AI_MODEL, skillFile: resolve(root, "ai/skills/tu-van-tour/SKILL.md") },
   };

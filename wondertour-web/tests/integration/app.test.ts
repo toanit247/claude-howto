@@ -311,33 +311,55 @@ describe("vé tham quan", () => {
 });
 
 describe("quản trị web", () => {
-  it("chưa cấu hình tài khoản thì trang báo cách bật; đăng nhập trả 503", async () => {
+  it("đăng nhập bằng tài khoản nhân viên xTravelOS; vai trò sales bị chặn; cookie HttpOnly Strict", async () => {
     const { app } = makeApp();
-    const page = await request(app).get("/quan-tri").expect(200);
-    expect(page.text).toContain("Chưa có tài khoản quản trị");
-    expect(page.headers["cache-control"]).toBe("private, no-store");
-    await request(app).post("/api/admin/login").send({ username: "admin", password: "x" }).expect(503);
-  });
-
-  it("đăng nhập, lưu cấu hình, tắt vé tham quan thì trang vé 404 và menu ẩn", async () => {
-    const { app } = makeApp(mockUrl, { ADMIN_USERNAME: "admin", ADMIN_PASSWORD_HASH: ADMIN_HASH });
-    await request(app).post("/api/admin/login").send({ username: "admin", password: "sai-mat-khau-roi" }).expect(401);
-    await request(app).get("/api/admin/settings").expect(401);
+    await request(app).post("/api/admin/login").send({ username: "toan", password: "sai-mat-khau" }).expect(401);
+    await request(app).post("/api/admin/login").send({ username: "sale01", password: "matkhau123" }).expect(403);
     const agent = request.agent(app);
-    const login = await agent.post("/api/admin/login").send({ username: "admin", password: "mat-khau-quan-tri-123" }).expect(200);
+    const login = await agent.post("/api/admin/login").send({ username: "marketing01", password: "matkhau123" }).expect(200);
+    expect(login.body).toMatchObject({ name: "Nguyễn Minh Anh", role: "marketing", source: "xtravelos" });
     const cookies = ([] as string[]).concat(login.headers["set-cookie"] ?? []);
     expect(cookies.some((c) => c.startsWith("wt_admin=") && /HttpOnly/i.test(c) && /SameSite=Strict/i.test(c))).toBe(true);
+    expect(cookies.join(";")).not.toContain("matkhau123");
+    const me = await agent.get("/api/admin/me").expect(200);
+    expect(me.body.role).toBe("marketing");
+  });
+
+  it("cấu hình cất ở xTravelOS: lưu từ web, đọc lại sau khi khởi động lại web; tắt vé thì trang vé 404", async () => {
+    const { app } = makeApp(mockUrl, { SETTINGS_SOURCE: "xtravelos" });
+    const agent = request.agent(app);
+    await agent.post("/api/admin/login").send({ username: "toan", password: "matkhau123" }).expect(200);
     const current = await agent.get("/api/admin/settings").expect(200);
     expect(current.body.features.tickets).toBe(true);
     await agent.put("/api/admin/settings").send({ ...current.body, features: { ...current.body.features, tickets: false }, contact: { hotline: "1900 1234" } }).expect(200);
-    await request(app).get("/ve-tham-quan").expect(404);
-    await request(app).post("/api/ticket-orders").set("Idempotency-Key", idem()).send({}).expect(404);
-    const home = await request(app).get("/").expect(200);
+
+    // Web khởi động lại (tiến trình mới) vẫn thấy cấu hình vì nó nằm ở xTravelOS.
+    const { app: app2, settings } = makeApp(mockUrl, { SETTINGS_SOURCE: "xtravelos" });
+    await settings.refresh();
+    await request(app2).get("/ve-tham-quan").expect(404);
+    const home = await request(app2).get("/").expect(200);
     expect(home.text).not.toContain('href="/ve-tham-quan"');
     expect(home.text).toContain("1900 1234");
+
+    // Dữ liệu sai bị chặn ở web trước khi tới xTravelOS; đăng xuất thì hết quyền.
     await agent.put("/api/admin/settings").send({ services: [{ label: "", icon: "x", href: "/" }] }).expect(422);
     await agent.post("/api/admin/logout").send({}).expect(204);
     await agent.get("/api/admin/settings").expect(401);
+    // Trả lại mặc định cho các kiểm thử khác.
+    await settings.save({ ...(await settings.get()), features: { ...(await settings.get()).features, tickets: true }, contact: {} }, null).catch(() => undefined);
+  });
+
+  it("tài khoản dự phòng chỉ dùng được khi xTravelOS tắt hoặc chưa có /staff/login", async () => {
+    const live = makeApp(mockUrl, { ADMIN_USERNAME: "dubphong", ADMIN_PASSWORD_HASH: ADMIN_HASH });
+    // xTravelOS đang chạy và có /staff/login: tài khoản dự phòng không qua được (xTravelOS trả 401).
+    await request(live.app).post("/api/admin/login").send({ username: "dubphong", password: "mat-khau-quan-tri-123" }).expect(401);
+    // xTravelOS tắt: dự phòng vào được, cấu hình đọc từ tệp.
+    const down = makeApp("http://127.0.0.1:9", { ADMIN_USERNAME: "dubphong", ADMIN_PASSWORD_HASH: ADMIN_HASH });
+    const agent = request.agent(down.app);
+    const login = await agent.post("/api/admin/login").send({ username: "dubphong", password: "mat-khau-quan-tri-123" }).expect(200);
+    expect(login.body.source).toBe("env");
+    await agent.get("/api/admin/settings").expect(200);
+    await request(down.app).post("/api/admin/login").send({ username: "toan", password: "matkhau123" }).expect(401);
   });
 
   it("robots chặn /quan-tri; trang quản trị noindex", async () => {

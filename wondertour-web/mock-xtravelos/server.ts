@@ -7,7 +7,8 @@ import QRCode from "qrcode";
 import { z } from "zod";
 import { sign } from "../src/server/hmac";
 import * as S from "../src/shared/schemas";
-import { AGENTS, ARTICLES, PRODUCTS, TICKETS, type MockProduct, type MockTicket } from "./data";
+import { SiteSettings } from "../src/shared/settings";
+import { AGENTS, ARTICLES, PRODUCTS, STAFF, TICKETS, type MockProduct, type MockTicket } from "./data";
 
 interface HoldRec {
   holdId: string;
@@ -80,6 +81,10 @@ export function createMockXTravel(opts: MockOptions) {
   const holds = new Map<string, HoldRec>();
   const bookings = new Map<string, BookingRec>();
   const sessions = new Map<string, (typeof AGENTS)[number]>();
+  const staffSessions = new Map<string, (typeof STAFF)[number]>();
+  // Cấu hình web do nhân viên lưu; null nghĩa là chưa lưu gì (web dùng mặc định).
+  let siteSettings: unknown = null;
+  const SETTINGS_ROLES = new Set(["admin", "manager", "ceo", "marketing"]);
   const idem = new Map<string, Promise<{ status: number; body: unknown }>>();
   let leads = 0;
 
@@ -478,6 +483,31 @@ export function createMockXTravel(opts: MockOptions) {
     res.json({ sessionToken: token, expiresAt: new Date(Date.now() + 8 * 3600_000).toISOString(), agent: a.profile });
   });
 
+  v1.post("/staff/login", (req, res) => {
+    const input = S.AgentLoginInput.safeParse(req.body);
+    const st = input.success ? STAFF.find((x) => x.username === input.data.username && x.password === input.data.password) : undefined;
+    if (!st) return err(res, 401, "Sai tên đăng nhập hoặc mật khẩu.");
+    const token = randomBytes(24).toString("hex");
+    staffSessions.set(token, st);
+    res.json({ sessionToken: token, expiresAt: new Date(Date.now() + 8 * 3600_000).toISOString(), staff: { name: st.name, role: st.role } });
+  });
+
+  v1.get("/site-settings", (_req, res) => {
+    if (siteSettings === null) return err(res, 404, "Chưa có cấu hình web.");
+    res.json(siteSettings);
+  });
+
+  v1.put("/site-settings", (req, res) => {
+    const t = req.get("x-session-token");
+    const st = t ? staffSessions.get(t) : undefined;
+    if (!st) return err(res, 401, "Phiên nhân viên đã hết.");
+    if (!SETTINGS_ROLES.has(st.role)) return err(res, 403, "Vai trò này không được sửa cấu hình web.");
+    const parsed = SiteSettings.safeParse(req.body);
+    if (!parsed.success) return err(res, 422, "Cấu hình web không hợp lệ.");
+    siteSettings = parsed.data;
+    res.status(204).end();
+  });
+
   v1.get("/agents/me/statement", (req, res) => {
     const t = sessionOf(req);
     const a = t ? sessions.get(t) : undefined;
@@ -575,6 +605,11 @@ function openapi() {
       "/tickets": { get: { responses: { ...ok(S.TicketList), ...errs } } },
       "/tickets/{slug}": { get: { responses: { ...ok(S.TicketDetail), ...errs } } },
       "/ticket-orders": { post: { parameters: [idemHeader], requestBody: body(S.TicketOrderInput), responses: { ...ok(S.Booking, "201"), ...errs } } },
+      "/staff/login": { post: { requestBody: body(S.AgentLoginInput), responses: { ...ok(S.StaffLoginResult), ...errs } } },
+      "/site-settings": {
+        get: { responses: { ...ok(SiteSettings), ...errs } },
+        put: { security: [{ service: [], session: [] }], requestBody: body(SiteSettings), responses: { "204": { description: "Đã lưu" }, ...errs } },
+      },
       "/leads": { post: { parameters: [idemHeader], requestBody: body(S.LeadInput), responses: { "201": { description: "Đã nhận" }, ...errs } } },
       "/agents/login": { post: { requestBody: body(S.AgentLoginInput), responses: { ...ok(S.AgentLoginResult), ...errs } } },
       "/agents/me/statement": { get: { security: [{ service: [], session: [] }], responses: { ...ok(S.AgentStatement), ...errs } } },
