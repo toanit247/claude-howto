@@ -1,0 +1,94 @@
+{
+  "name": "WonderTour",
+  "slogan": "Du lịch đích thực",
+  "description": "WonderTour tổ chức tour doanh nghiệp, MICE, teambuilding, tour học sinh, tour thiết kế riêng và tour châu Á. Mỗi hành trình là một lời hứa được giữ bằng sự chỉn chu.",
+  "logo": "/brand/wondertour.svg",
+  "colors": {
+    "primary": "#05788C",
+    "accent": "#F55D99",
+    "soft": "#FBCDDF"
+  },
+  "hero": {
+    "title": "Khách hàng không mua tour. Họ mua lời hứa về một chuyến đi.",
+    "subtitle": "Lịch khởi hành, chỗ còn và giá bên dưới lấy thẳng từ hệ thống điều hành, cập nhật từng phút."
+  },
+  "services": [
+    {
+      "label": "Tour trong nước",
+      "icon": "map",
+      "href": "/tour?category=trong-nuoc"
+    },
+    {
+      "label": "Tour nước ngoài",
+      "icon": "plane",
+      "href": "/tour?category=nuoc-ngoai"
+    },
+    {
+      "label": "Đoàn, MICE",
+      "icon": "case",
+      "href": "/tour?category=doanh-nghiep"
+    },
+    {
+      "label": "Teambuilding, gala",
+      "icon": "confetti",
+      "href": "/lien-he?nhu-cau=Teambuilding, gala dinner"
+    },
+    {
+      "label": "Tour học sinh",
+      "icon": "cap",
+      "href": "/lien-he?nhu-cau=Tour học sinh, sinh viên"
+    },
+    {
+      "label": "Visa",
+      "icon": "passport",
+      "href": "/lien-he?nhu-cau=Làm visa"
+    },
+    {
+      "label": "Vé máy bay",
+      "icon": "ticket",
+      "href": "/lien-he?nhu-cau=Vé máy bay"
+    },
+    {
+      "label": "SIM, eSIM du lịch",
+      "icon": "sim",
+      "href": "https://simdulich.vn"
+    }
+  ],
+  "departureCities": [
+    "Hà Nội",
+    "TP.HCM"
+  ],
+  "proof": [
+    {
+      "client": "LOF",
+      "trip": "Cát Bà",
+      "pax": 500
+    },
+    {
+      "client": "Vitto",
+      "trip": "Thái Lan",
+      "pax": 250
+    },
+    {
+      "client": "VNPT",
+      "trip": "Trung Quốc",
+      "pax": 120
+    },
+    {
+      "client": "LOF",
+      "trip": "Hàn Quốc",
+      "pax": 90
+    }
+  ],
+  "contact": {
+    "address": "129 Nguyễn Ngọc Doãn, Hà Nội",
+    "branches": [
+      "Hà Nội",
+      "TP.HCM",
+      "Hải Dương",
+      "Phú Thọ",
+      "Hà Nam",
+      "Nam Định"
+    ]
+  }
+}

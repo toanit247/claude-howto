@@ -1,0 +1,90 @@
+@import "tailwindcss";
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/800.css";
+
+/*
+  Màu chỉ lấy từ biến thương hiệu (--brand-*) do máy chủ phát ở /brand.css theo tệp brand/*.json.
+  Các sắc độ phụ được pha từ chính màu thương hiệu, nên đổi doanh nghiệp không phải sửa mã.
+*/
+@theme inline {
+  --color-primary: var(--brand-primary);
+  --color-primary-strong: color-mix(in oklab, var(--brand-primary) 82%, black);
+  --color-ink: color-mix(in oklab, var(--brand-primary) 30%, black);
+  --color-muted: color-mix(in oklab, var(--brand-primary) 30%, #5b6670);
+  --color-line: color-mix(in oklab, var(--brand-primary) 16%, white);
+  --color-mist: color-mix(in oklab, var(--brand-primary) 6%, white);
+  --color-accent: var(--brand-accent);
+  --color-accent-ink: color-mix(in oklab, var(--brand-accent) 45%, black);
+  --color-soft: var(--brand-soft);
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-extrabold text-ink;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--brand-accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility wrap {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-primary text-white hover:bg-primary-strong;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-white text-ink hover:border-primary hover:text-primary;
+}
+@utility field {
+  @apply block min-h-11 w-full rounded-lg border border-line bg-white px-3 text-ink placeholder:text-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none;
+}
+@utility label {
+  @apply mb-1 block text-sm font-semibold text-ink;
+}
+
+@layer components {
+  .prose-wt p {
+    @apply my-4 max-w-[68ch];
+  }
+  .prose-wt h2 {
+    @apply mt-10 mb-3 text-2xl;
+  }
+  .prose-wt ul {
+    @apply my-4 max-w-[68ch] list-disc space-y-1 pl-6;
+  }
+}
+
+/* Bảng khởi hành: chữ số đều nhau để các cột ngày, chỗ, giá thẳng hàng. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
