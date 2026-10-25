@@ -357,6 +357,55 @@ export const ARTICLE_DRAFTS = [
       { type: "paragraph", text: "Chuyến đi đáng nhớ không phải vì mọi thứ hoàn hảo, mà vì khi có chuyện, đoàn biết ai xử lý và xử lý nhanh." },
     ],
   },
+  {
+    slug: "nhat-ban-mua-thu-lo-lua-va-phu-si",
+    title: "Nhật Bản mùa thu: lá đỏ, núi Phú Sĩ và cách chọn ngày đi",
+    excerpt: "Vì sao tháng 11 hay được chọn, khi nào nên đi Phú Sĩ, và những việc nên chuẩn bị trước chuyến đi đoàn 6 ngày.",
+    author: "Phòng Sản phẩm",
+    daysAgo: 2,
+    productSlug: "nhat-ban-6n5d-tokyo-phu-si-osaka",
+    blocks: [
+      { type: "paragraph", text: "Nhật Bản đẹp quanh năm, nhưng mùa thu, khi lá chuyển đỏ từ cuối tháng 10, là mùa khách hỏi nhiều nhất. Lá đỏ ở Kyoto thường đến muộn hơn ở Tokyo vài tuần, nên lịch trình tốt nhất là đi từ Tokyo rồi xuống Kyoto." },
+      { type: "heading", text: "Phú Sĩ: ngày nhìn thấy núi quyết định nhiều" },
+      { type: "paragraph", text: "Núi thường bị mây che, nhất là buổi chiều. Chúng tôi xếp Phú Sĩ vào buổi sáng đầu chuyến khi có thể, và giữ một ngày dự phòng trong lịch trình để không phải bỏ hẳn điểm này." },
+      { type: "heading", text: "Trước chuyến đi" },
+      { type: "list", items: ["Hộ chiếu còn hạn đủ thời gian theo yêu cầu của phòng visa", "Giày đi bộ đã đi thử, vì mỗi ngày đi bộ nhiều", "Thẻ thanh toán quốc tế và một ít tiền yên để dùng ở quán nhỏ", "Đăng ký danh sách khách đoàn đúng tên như hộ chiếu"] },
+      { type: "paragraph", text: "Tour đã gồm visa nên hồ sơ do chúng tôi hướng dẫn và nộp theo đoàn. Anh/chị chỉ cần chuẩn bị giấy tờ đúng hạn." },
+    ],
+  },
+  {
+    slug: "phu-quoc-cho-gia-dinh-co-tre-nho",
+    title: "Phú Quốc cho gia đình có trẻ nhỏ: nghỉ dưỡng mà không mệt",
+    excerpt: "Chọn resort gần biển, xếp lịch tránh nắng gắt, và những điều đưa trẻ nhỏ đi biển cần nhớ.",
+    author: "Phòng Sản phẩm",
+    daysAgo: 6,
+    productSlug: "phu-quoc-3n2d-nghi-duong",
+    blocks: [
+      { type: "paragraph", text: "Đi Phú Quốc với trẻ nhỏ khác đi cặp đôi. Điều khiến chuyến đi nhẹ nhàng thường không phải là điểm đến đẹp, mà là lịch trình để trẻ có giờ ngủ, có chỗ nghỉ mát và không phải chờ lâu." },
+      { type: "heading", text: "Xếp lịch theo nhịp của bé" },
+      { type: "paragraph", text: "Buổi sáng đi biển khi nắng chưa gắt, trưa nghỉ ở resort, chiều đi cáp treo Hòn Thơm hoặc chợ đêm. Người lớn tuổi đi cùng nên có một buổi nghỉ riêng mỗi ngày." },
+      { type: "heading", text: "Khi đi máy bay" },
+      { type: "list", items: ["Mang theo đồ ăn nhẹ và bình nước cho bé", "Em bé dưới 2 tuổi là giá em bé, ghi rõ khi đặt chỗ", "Trẻ em từ 2 đến 11 tuổi tính giá trẻ em theo bảng giá tour"] },
+      { type: "paragraph", text: "Anh/chị cho chúng tôi biết tuổi của bé khi đặt chỗ để giá và chỗ nghỉ đúng ngay từ đầu." },
+    ],
+  },
+  {
+    slug: "tour-hoc-sinh-an-toan-truoc-tien",
+    title: "Tour học sinh: an toàn đi trước, trải nghiệm đi sau",
+    excerpt: "Quy trình kiểm soát đoàn, bảo hiểm và trách nhiệm của thầy cô khi đưa học sinh đi xa, theo cách chúng tôi làm từng chuyến.",
+    author: "Phòng Điều hành",
+    daysAgo: 11,
+    productSlug: null as string | null,
+    blocks: [
+      { type: "paragraph", text: "Phụ huynh và nhà trường hỏi đầu tiên là an toàn. Chúng tôi trả lời bằng quy trình, không bằng lời hứa." },
+      { type: "heading", text: "Trước khi đi" },
+      { type: "list", items: ["Danh sách học sinh và số điện thoại người giám hộ được chốt từ trước", "Mỗi nhóm có một trưởng nhóm là người lớn, có số điện thoại điều hành", "Bảo hiểm du lịch theo từng học sinh, ghi rõ trong hợp đồng"] },
+      { type: "heading", text: "Trong chuyến đi" },
+      { type: "paragraph", text: "Điểm danh theo nhóm trước khi lên xe, sau mỗi điểm dừng và trước khi rời khách sạn. Học sinh không đi lạc khỏi nhóm trong các điểm tham quan, và điều hành biết ngay khi có ai cần hỗ trợ." },
+      { type: "heading", text: "Với thầy cô" },
+      { type: "paragraph", text: "Thầy cô vẫn là người quyết định về lớp học. Chúng tôi lo phần đi lại, ăn ở và xử lý phát sinh, để thầy cô có thời gian cho học sinh." },
+    ],
+  }
 ];
 
 export const TICKETS: MockTicket[] = [
@@ -400,5 +449,6 @@ export const TICKETS: MockTicket[] = [
     terms: "Hủy trước 48 giờ hoàn 100%. Thời tiết xấu cảng cấm biển thì đổi ngày hoặc hoàn tiền.",
   },
 ];
+
 
 export const ARTICLES = [...ARTICLES_SEED, ...ARTICLE_DRAFTS] as const;
