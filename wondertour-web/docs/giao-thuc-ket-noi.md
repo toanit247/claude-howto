@@ -31,7 +31,7 @@ Khóa không đi qua chat hay ảnh chụp. Khóa dịch vụ và khóa ký đư
 | `GET /tickets`, `GET /tickets/{slug}` | Vé tham quan. |
 | `GET /articles`, `GET /articles/{slug}` | Bài viết cẩm nang. |
 | `GET /site-settings` | Cấu hình hiển thị của web. |
-| `GET /openapi.json` | Mô tả máy đọc được của API. |
+| `GET /public/v1/openapi.json` | Mô tả máy đọc được của API. Không cần khóa. |
 
 Ghi (cần khóa dịch vụ và tiêu đề `Idempotency-Key`):
 
@@ -105,6 +105,7 @@ Bộ điều hợp không được ghi thẳng vào web. Mọi thay đổi đi q
 
 ## 7. Checklist nối một đối tác mới
 
+- [ ] Chạy công cụ kiểm tra: `XTRAVEL_URL=... XTRAVEL_KEY=... WEB_URL=... WEBHOOK_SECRET=... npm run kiem-tra-ket-noi` trong `wondertour-web`. Công cụ chỉ đọc, trừ việc gửi một webhook thử "site-settings.updated"; thoát mã 1 nếu có mục không đạt.
 - [ ] ERP tạo khóa dịch vụ riêng cho đối tác (nếu đối tác cần gọi `/public/v1`).
 - [ ] Bộ điều hợp chạy trên môi trường thử, đồng bộ được ít nhất một sản phẩm.
 - [ ] Gửi webhook thử tới môi trường thử của web; web trả `204`.
