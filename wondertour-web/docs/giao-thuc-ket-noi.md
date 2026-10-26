@@ -12,9 +12,9 @@ Tài liệu này mô tả cách một bên có API (vé tham quan, khách sạn,
 
 | Hướng | Cách xác thực |
 |---|---|
-| Web → ERP (`/public/v1`) | Header `Authorization: Bearer <khóa dịch vụ>`. Khóa do ERP cấp ở **Marketing → Web bán hàng → Kết nối**. |
+| Web → ERP (`/public/v1`) | Header `Authorization: Bearer <khóa dịch vụ>`. ERP cũng nhận `X-API-Key`. Khóa do ERP cấp ở **Marketing → Web bán hàng → Kết nối**, phạm vi `web:public`. |
 | ERP → Web (webhook) | Chữ ký HMAC-SHA256 bằng khóa ký, xem mục 5. |
-| Đại lý / liên minh | Đăng nhập bằng tài khoản ERP; web gửi mã phiên trong header `X-Session-Token`, không dùng khóa dịch vụ cho khách. |
+| Đại lý / liên minh | Đăng nhập qua `POST /public/v1/agents/login`, nhận mã phiên; web gửi mã phiên trong header `X-Session-Token`, không dùng khóa dịch vụ cho khách. |
 | Nhân viên (quản trị web) | `POST /staff/login` trên ERP, chỉ vai trò được phép mới vào. |
 
 Khóa không đi qua chat hay ảnh chụp. Khóa dịch vụ và khóa ký được đặt trực tiếp vào biến môi trường của dịch vụ web.
@@ -33,19 +33,23 @@ Khóa không đi qua chat hay ảnh chụp. Khóa dịch vụ và khóa ký đư
 | `GET /site-settings` | Cấu hình hiển thị của web. |
 | `GET /public/v1/openapi.json` | Mô tả máy đọc được của API. Không cần khóa. |
 
-Ghi (cần khóa dịch vụ và tiêu đề `Idempotency-Key`):
+Ghi (cần khóa dịch vụ; web luôn gửi `Idempotency-Key`):
 
 | Endpoint | Dùng để |
 |---|---|
 | `POST /holds`, `POST /holds/{id}/release` | Giữ chỗ tạm, có đếm ngược. |
-| `POST /bookings`, `POST /bookings/lookup` | Đặt tour và tra cứu đơn bằng mã và số điện thoại. |
+| `POST /bookings` | Đặt tour. |
+| `GET /bookings/{code}` (header `X-Lookup-Phone`) | Tra cứu đơn bằng mã và số điện thoại. Web không ghi gì khi tra cứu. |
 | `POST /ticket-orders` | Đặt vé tham quan. |
-| `POST /leads` | Yêu cầu tư vấn từ form. |
+| `POST /leads` | Yêu cầu tư vấn từ form. Bắt buộc có `Idempotency-Key`. |
 
 ## 4. Chống trùng và lỗi
 
-- Mọi lệnh ghi phải gửi `Idempotency-Key` (chuỗi duy nhất cho mỗi thao tác). ERP lưu kết quả theo khóa này, nên gửi lại cùng khóa sẽ nhận cùng kết quả, không tạo đơn thứ hai.
-- Lỗi trả về dạng `{"detail": "thông báo tiếng Việt"}`.
+- `Idempotency-Key` là chuỗi duy nhất cho mỗi thao tác. Hiện ERP áp dụng cho `/holds`, `/bookings`, `/leads`, `/ticket-orders`.
+  - Khóa được ghi ngay khi ERP bắt đầu xử lý. Gửi lại cùng khóa, kể cả đồng thời, nhận đúng kết quả của lần đầu, không tạo đơn thứ hai.
+  - Cùng khóa nhưng nội dung khác: trả `422`.
+  - `/leads` bắt buộc có khóa; các endpoint còn lại nhận khóa nhưng không bắt buộc.
+- Lỗi trả về dạng `{"detail": "thông báo tiếng Việt"}`. Hiện ERP chưa có trường mã máy đọc (ví dụ `code`); web chỉ hiển thị `detail`. Khi ERP thêm trường `code`, tài liệu sẽ cập nhật.
 - Mã HTTP: `401` sai hoặc thiếu khóa; `403` không đủ quyền; `404` không tìm thấy; `409` xung đột (ví dụ hết chỗ); `422` dữ liệu sai; `429` gọi quá nhiều, có `Retry-After`; `5xx` lỗi máy chủ.
 - Web không tự thử lại lệnh ghi. Khi xTravelOS trả `5xx` hoặc không kết nối được, web tạm ngưng gọi và giữ bản dữ liệu đang có; người dùng gửi lại thao tác với cùng `Idempotency-Key`.
 
@@ -65,15 +69,17 @@ Nội dung:
 { "event": "product.updated", "slug": "phu-quoc-nghi-duong-3-ngay-2-dem" }
 ```
 
-Các sự kiện hiện có:
+Các sự kiện web xử lý, và trạng thái trên ERP hiện nay:
 
-| Sự kiện | Khi nào | Web làm gì |
-|---|---|---|
-| `product.updated`, `product.deleted` | Tour đổi hoặc bị gỡ | Xóa bản tạm của tour và danh sách liên quan |
-| `departures.updated` | Lịch hoặc chỗ còn đổi | Xóa bản tạm lịch khởi hành |
-| `article.updated`, `article.deleted` | Bài viết đổi | Xóa bản tạm bài viết và sơ đồ trang |
-| `ticket.updated`, `ticket.deleted` | Vé tham quan đổi | Xóa bản tạm vé |
-| `site-settings.updated` | Cấu hình web đổi | Tải lại cấu hình ngay |
+| Sự kiện | Khi nào | Web làm gì | ERP hiện nay |
+|---|---|---|---|
+| `product.updated`, `product.deleted` | Tour đổi hoặc bị gỡ | Xóa bản tạm của tour và danh sách liên quan | Đã bắn |
+| `departures.updated` | Lịch hoặc chỗ còn đổi | Xóa bản tạm lịch khởi hành | Chưa bắn; web chờ theo bản tạm 15 giây |
+| `article.updated`, `article.deleted` | Bài viết đổi | Xóa bản tạm bài viết và sơ đồ trang | Chỉ có `article.updated` |
+| `ticket.updated`, `ticket.deleted` | Vé tham quan đổi | Xóa bản tạm vé | Đã bắn |
+| `site-settings.updated` | Cấu hình web đổi | Tải lại cấu hình ngay | Chưa có trong danh sách ERP |
+
+Trạng thái đơn (đã thanh toán, đã xác nhận, đã hủy) chưa có sự kiện. Hiện web tra cứu lại `GET /bookings/{code}` khi cần. Nếu cần sự kiện `booking.*`, phía ERP phải bổ sung.
 
 Ví dụ kiểm tra chữ ký (Node.js):
 
