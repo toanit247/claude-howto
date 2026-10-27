@@ -267,7 +267,8 @@ export const TicketDetail = TicketSummary.extend({
 });
 export type TicketDetail = z.infer<typeof TicketDetail>;
 
-export const ApiErrorBody = z.object({ detail: z.string().min(1).max(500) });
+// Mã máy đọc (ví dụ SEAT_UNAVAILABLE) là phần thêm sau; ERP chưa có thì web chỉ dùng detail.
+export const ApiErrorBody = z.object({ detail: z.string().min(1).max(500), code: z.string().max(64).optional() });
 
 export const WebhookEvent = z.object({
   event: z.enum([
@@ -279,9 +280,15 @@ export const WebhookEvent = z.object({
     "ticket.updated",
     "ticket.deleted",
     "site-settings.updated",
+    // Trạng thái đơn: web không giữ đơn, chỉ nhận để biết; khách vẫn tra cứu đơn trên ERP.
+    "booking.created",
+    "booking.paid",
+    "booking.confirmed",
+    "booking.cancelled",
+    "booking.expired",
   ]),
-  // Sự kiện cấu hình web không gắn sản phẩm nào: slug để "web".
-  slug,
+  // Sự kiện cấu hình web không gắn sản phẩm nào: slug để "web". Sự kiện đơn dùng mã đơn (chữ hoa).
+  slug: z.union([slug, z.string().regex(/^[A-Z0-9-]{4,32}$/)]),
 });
 export type WebhookEvent = z.infer<typeof WebhookEvent>;
 

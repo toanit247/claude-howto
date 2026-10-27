@@ -49,7 +49,7 @@ Ghi (cần khóa dịch vụ; web luôn gửi `Idempotency-Key`):
   - Khóa được ghi ngay khi ERP bắt đầu xử lý. Gửi lại cùng khóa, kể cả đồng thời, nhận đúng kết quả của lần đầu, không tạo đơn thứ hai.
   - Cùng khóa nhưng nội dung khác: trả `422`.
   - `/leads` bắt buộc có khóa; các endpoint còn lại nhận khóa nhưng không bắt buộc.
-- Lỗi trả về dạng `{"detail": "thông báo tiếng Việt"}`. Hiện ERP chưa có trường mã máy đọc (ví dụ `code`); web chỉ hiển thị `detail`. Khi ERP thêm trường `code`, tài liệu sẽ cập nhật.
+- Lỗi trả về dạng `{"detail": "thông báo tiếng Việt"}`, và có thể thêm trường `code` máy đọc (ví dụ `SEAT_UNAVAILABLE`). Web đã chấp nhận trường `code` nếu có, nhưng ERP chưa trả trường này nên hiện web chỉ hiển thị `detail`.
 - Mã HTTP: `401` sai hoặc thiếu khóa; `403` không đủ quyền; `404` không tìm thấy; `409` xung đột (ví dụ hết chỗ); `422` dữ liệu sai; `429` gọi quá nhiều, có `Retry-After`; `5xx` lỗi máy chủ.
 - Web không tự thử lại lệnh ghi. Khi xTravelOS trả `5xx` hoặc không kết nối được, web tạm ngưng gọi và giữ bản dữ liệu đang có; người dùng gửi lại thao tác với cùng `Idempotency-Key`.
 
@@ -79,7 +79,7 @@ Các sự kiện web xử lý, và trạng thái trên ERP hiện nay:
 | `ticket.updated`, `ticket.deleted` | Vé tham quan đổi | Xóa bản tạm vé | Đã bắn |
 | `site-settings.updated` | Cấu hình web đổi | Tải lại cấu hình ngay | Chưa có trong danh sách ERP |
 
-Trạng thái đơn (đã thanh toán, đã xác nhận, đã hủy) chưa có sự kiện. Hiện web tra cứu lại `GET /bookings/{code}` khi cần. Nếu cần sự kiện `booking.*`, phía ERP phải bổ sung.
+Sự kiện trạng thái đơn `booking.created`, `booking.paid`, `booking.confirmed`, `booking.cancelled`, `booking.expired` đã được web nhận (204) và không xóa bản tạm nào, vì web không giữ đơn. ERP chưa bắn các sự kiện này; đến khi ERP làm xong, web vẫn tra cứu lại `GET /bookings/{code}` khi cần.
 
 Ví dụ kiểm tra chữ ký (Node.js):
 

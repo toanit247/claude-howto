@@ -269,6 +269,17 @@ describe("báo đổi nội dung và bảo trì", () => {
     expect(cache.get(`product:${SLUG}`)).toBeUndefined();
   });
 
+  it("sự kiện trạng thái đơn được nhận và không xóa bản tạm nào; sự kiện lạ vẫn bị 422", async () => {
+    const { app, cache } = makeApp();
+    await request(app).get(`/tour/${SLUG}`).expect(200);
+    const body = JSON.stringify({ event: "booking.paid", slug: "WT-ABC123" });
+    const ts = String(Math.floor(Date.now() / 1000));
+    await request(app).post("/hooks/xtravelos").set("Content-Type", "application/json").set("X-XTravel-Timestamp", ts).set("X-XTravel-Signature", sign(WEBHOOK, ts, body)).send(body).expect(204);
+    expect(cache.get(`product:${SLUG}`)).toBeDefined();
+    const unknown = JSON.stringify({ event: "booking.refunded", slug: "WT-ABC123" });
+    await request(app).post("/hooks/xtravelos").set("Content-Type", "application/json").set("X-XTravel-Timestamp", ts).set("X-XTravel-Signature", sign(WEBHOOK, ts, unknown)).send(unknown).expect(422);
+  });
+
   it("tắt xTravelOS thì web báo bảo trì 503, không bán bằng dữ liệu cũ", async () => {
     const { app } = makeApp("http://127.0.0.1:9");
     const page = await request(app).get(`/tour/${SLUG}`).expect(503);

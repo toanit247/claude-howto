@@ -123,6 +123,12 @@ export function createApp({ config, renderer, staticDir, devMiddleware }: AppOpt
       res.status(204).end();
       return;
     }
+    if (event.event.startsWith("booking.")) {
+      // Web không giữ đơn nên không có bản tạm nào để xóa; trạng thái đơn luôn đọc lại từ xTravelOS.
+      log.info("webhook", { event: event.event, purged: 0 });
+      res.status(204).end();
+      return;
+    }
     const tags = event.event.startsWith("article")
       ? [`article:${event.slug}`, "articles", "sitemap"]
       : event.event.startsWith("ticket")
